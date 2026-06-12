@@ -10,7 +10,7 @@ import {
 import { useStore } from '../../lib/store';
 import { useMounted } from '../../hooks/useMounted';
 import PageHeader from '../../components/ui/page-header';
-import MetricCard from '../../components/ui/metric-card';
+import Sparkline from '../../components/ui/sparkline';
 import Card, { CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import StatusBadge from '../../components/ui/status-badge';
 
@@ -80,67 +80,188 @@ export default function DashboardPage() {
       <div className="space-y-4">
         <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Filtro de Desempenho Operacional</h2>
         
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <MetricCard 
-            title="Propostas Enviadas" 
-            value={propostasEnviadas} 
-            icon={<Send className="h-4 w-4" />}
-            trend={{ value: 'Em análise', type: 'neutral' }}
-          />
-          <MetricCard 
-            title="Propostas Aceitas" 
-            value={propostasAceitas} 
-            icon={<CheckCircle className="h-4 w-4" />}
-            trend={{ value: '+15% mês', type: 'positive' }}
-          />
-          <MetricCard 
-            title="Aguardando Assinatura" 
-            value={contratosAguardandoAssinatura} 
-            icon={<FileSignature className="h-4 w-4" />}
-            trend={{ value: 'ZapSign', type: 'neutral' }}
-          />
-          <MetricCard 
-            title="Cobranças Pendentes" 
-            value={cobrancasAguardandoPagamento} 
-            icon={<Clock className="h-4 w-4" />}
-            trend={{ value: 'Asaas', type: 'neutral' }}
-          />
-          <MetricCard 
-            title="Cobranças Pagas" 
-            value={cobrancasPagas} 
-            icon={<CreditCard className="h-4 w-4" />}
-            trend={{ value: '+8% sem.', type: 'positive' }}
-          />
-          <MetricCard 
-            title="Em Onboarding" 
-            value={clientesEmOnboarding} 
-            icon={<UserPlus className="h-4 w-4" />}
-            trend={{ value: 'Ativos em breve', type: 'neutral' }}
-          />
-          <MetricCard 
-            title="Pubs para Aprovação" 
-            value={publicacoesAguardandoAprovacao} 
-            icon={<ImageIcon className="h-4 w-4" />}
-            trend={{ value: 'Ação requerida', type: 'neutral' }}
-          />
-          <MetricCard 
-            title="Pubs com Alteração" 
-            value={publicacoesComAlteracao} 
-            icon={<AlertCircle className="h-4 w-4" />}
-            trend={{ value: 'Revisar artes', type: 'negative' }}
-          />
-          <MetricCard 
-            title="Tarefas Pendentes" 
-            value={tarefasPendentes} 
-            icon={<CheckSquare className="h-4 w-4" />}
-            trend={{ value: 'Equipe ativa', type: 'neutral' }}
-          />
-          <MetricCard 
-            title="Tarefas Atrasadas" 
-            value={tarefasAtrasadas} 
-            icon={<AlertTriangle className="h-4 w-4" />}
-            trend={{ value: 'Crítico', type: 'negative' }}
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          
+          {/* Comercial */}
+          <Card className="p-4 border-border/50">
+            <div className="flex items-center justify-between border-b border-border/30 pb-2 mb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Comercial</span>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
+                    <Send className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="truncate">Enviadas</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground block mt-0.5">Em análise</span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Sparkline points={[2, 3, 5, 4, 7, 6, 8]} variant="primary" />
+                  <span className="text-lg font-bold text-foreground">{propostasEnviadas}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 border-t border-border/10 pt-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
+                    <CheckCircle className="h-3.5 w-3.5 text-success shrink-0" />
+                    <span className="truncate">Aceitas</span>
+                  </div>
+                  <span className="text-[10px] text-success font-medium block mt-0.5">+15% mês</span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Sparkline points={[1, 1, 2, 2, 3, 3, 5]} variant="success" />
+                  <span className="text-lg font-bold text-foreground">{propostasAceitas}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Financeiro */}
+          <Card className="p-4 border-border/50">
+            <div className="flex items-center justify-between border-b border-border/30 pb-2 mb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Financeiro</span>
+            </div>
+            <div className="space-y-3.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
+                    <FileSignature className="h-3.5 w-3.5 text-warning shrink-0" />
+                    <span className="truncate">Assinaturas</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground block mt-0.5">ZapSign</span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Sparkline points={[4, 3, 2, 3, 2, 1, 2]} variant="neutral" />
+                  <span className="text-lg font-bold text-foreground">{contratosAguardandoAssinatura}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 border-t border-border/10 pt-3.5">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate">Pendente</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground block mt-0.5">Asaas</span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Sparkline points={[5, 4, 3, 2, 4, 5, 3]} variant="neutral" />
+                  <span className="text-lg font-bold text-foreground">{cobrancasAguardandoPagamento}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 border-t border-border/10 pt-3.5">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
+                    <CreditCard className="h-3.5 w-3.5 text-success shrink-0" />
+                    <span className="truncate">Pago</span>
+                  </div>
+                  <span className="text-[10px] text-success font-medium block mt-0.5">+8% sem.</span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Sparkline points={[8, 10, 12, 11, 14, 15, 18]} variant="success" />
+                  <span className="text-lg font-bold text-foreground">{cobrancasPagas}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Operações */}
+          <Card className="p-4 border-border/50">
+            <div className="flex items-center justify-between border-b border-border/30 pb-2 mb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Operações</span>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
+                    <UserPlus className="h-3.5 w-3.5 text-info shrink-0" />
+                    <span className="truncate">Onboarding</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground block mt-0.5">Simulado</span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Sparkline points={[2, 2, 3, 2, 3, 4, 3]} variant="info" />
+                  <span className="text-lg font-bold text-foreground">{clientesEmOnboarding}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Conteúdo */}
+          <Card className="p-4 border-border/50">
+            <div className="flex items-center justify-between border-b border-border/30 pb-2 mb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Conteúdo</span>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
+                    <ImageIcon className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="truncate">Aprovar</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground block mt-0.5">Pendentes</span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Sparkline points={[3, 2, 4, 3, 2, 1, 2]} variant="primary" />
+                  <span className="text-lg font-bold text-foreground">{publicacoesAguardandoAprovacao}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 border-t border-border/10 pt-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
+                    <AlertCircle className="h-3.5 w-3.5 text-danger shrink-0" />
+                    <span className="truncate">Alterar</span>
+                  </div>
+                  <span className="text-[10px] text-danger font-medium block mt-0.5">Revisar</span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Sparkline points={[1, 2, 1, 0, 1, 2, 1]} variant="danger" />
+                  <span className="text-lg font-bold text-foreground">{publicacoesComAlteracao}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Tarefas */}
+          <Card className="p-4 border-border/50">
+            <div className="flex items-center justify-between border-b border-border/30 pb-2 mb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tarefas</span>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
+                    <CheckSquare className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="truncate">Pendentes</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground block mt-0.5">Equipe</span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Sparkline points={[12, 14, 15, 13, 16, 17, 15]} variant="primary" />
+                  <span className="text-lg font-bold text-foreground">{tarefasPendentes}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 border-t border-border/10 pt-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
+                    <AlertTriangle className="h-3.5 w-3.5 text-danger shrink-0" />
+                    <span className="truncate">Atrasadas</span>
+                  </div>
+                  <span className="text-[10px] text-danger font-medium block mt-0.5">Crítico</span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Sparkline points={[3, 2, 1, 0, 1, 2, 0]} variant="danger" />
+                  <span className="text-lg font-bold text-foreground">{tarefasAtrasadas}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
         </div>
       </div>
 

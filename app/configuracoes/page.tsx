@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Settings, RefreshCw, Key, ShieldCheck, Database } from 'lucide-react';
+import { RefreshCw, Key, ShieldCheck, Database } from 'lucide-react';
 import { useStore } from '../../lib/store';
 import { useMounted } from '../../hooks/useMounted';
 import { PageHeader as UIHeader } from '../../components/ui/page-header';

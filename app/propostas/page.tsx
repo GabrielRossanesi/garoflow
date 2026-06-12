@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Filter, Eye, FileText, ExternalLink, Send, Trash2, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Filter, FileText, ExternalLink, Send, Trash2 } from 'lucide-react';
 import { useStore } from '../../lib/store';
 import { useMounted } from '../../hooks/useMounted';
 import { PageHeader as UIHeader } from '../../components/ui/page-header';
@@ -16,7 +16,7 @@ import Table, { TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import StatusBadge from '../../components/ui/status-badge';
 import EmptyState from '../../components/ui/empty-state';
 import DatePicker from '../../components/ui/date-picker';
-import { ProposalStatus, ProposalItem } from '../../types';
+import { ProposalItem } from '../../types';
 
 export default function PropostasPage() {
   const mounted = useMounted();
@@ -200,74 +200,144 @@ export default function PropostasPage() {
               />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Empresa / Cliente</TableHead>
-                  <TableHead>Descrição do Serviço</TableHead>
-                  <TableHead>Valor Mensal</TableHead>
-                  <TableHead>Valor Total</TableHead>
-                  <TableHead>Validade</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Empresa / Cliente</TableHead>
+                      <TableHead>Descrição do Serviço</TableHead>
+                      <TableHead>Valor Mensal</TableHead>
+                      <TableHead>Valor Total</TableHead>
+                      <TableHead>Validade</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProposals.map((prop) => (
+                      <TableRow key={prop.id}>
+                        <TableCell>
+                          <div className="font-semibold text-foreground">{prop.companyName}</div>
+                          <div className="text-xs text-muted-foreground">Contato: {prop.clientName}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-foreground font-medium truncate max-w-xs">{prop.description}</div>
+                          <div className="text-[10px] text-muted-foreground">Criação: {new Date(prop.createdAt).toLocaleDateString('pt-BR')}</div>
+                        </TableCell>
+                        <TableCell className="font-semibold text-foreground text-xs">
+                          R$ {prop.monthlyValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell className="font-semibold text-foreground text-xs">
+                          R$ {prop.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{new Date(prop.validityDate).toLocaleDateString('pt-BR')}</TableCell>
+                        <TableCell><StatusBadge type="proposal" status={prop.status} /></TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {/* Link to public proposal page */}
+                            <Link href={`/proposta/${prop.id}`} target="_blank">
+                              <Button variant="outline" size="sm" className="h-8 gap-1" title="Ver Link Público da Proposta">
+                                Página Aceite <ExternalLink className="h-3 w-3" />
+                              </Button>
+                            </Link>
+
+                            {/* Send proposal flow mock */}
+                            {prop.status === 'draft' && (
+                              <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                onClick={() => updateProposalStatus(prop.id, 'sent')}
+                                className="h-8 gap-1 text-primary hover:text-primary border border-border"
+                              >
+                                <Send className="h-3 w-3" /> Enviar
+                              </Button>
+                            )}
+
+                            {prop.status === 'sent' && (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => updateProposalStatus(prop.id, 'viewed')}
+                                className="h-8 text-xs font-semibold text-amber-500 border-amber-500/20 hover:bg-amber-500/5"
+                              >
+                                Marcar Visualizada
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="block md:hidden divide-y divide-border/30 px-4">
                 {filteredProposals.map((prop) => (
-                  <TableRow key={prop.id}>
-                    <TableCell>
-                      <div className="font-semibold text-foreground">{prop.companyName}</div>
-                      <div className="text-xs text-muted-foreground">Contato: {prop.clientName}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-foreground font-medium truncate max-w-xs">{prop.description}</div>
-                      <div className="text-[10px] text-muted-foreground">Criação: {new Date(prop.createdAt).toLocaleDateString('pt-BR')}</div>
-                    </TableCell>
-                    <TableCell className="font-semibold text-foreground text-xs">
-                      R$ {prop.monthlyValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell className="font-semibold text-foreground text-xs">
-                      R$ {prop.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{new Date(prop.validityDate).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell><StatusBadge type="proposal" status={prop.status} /></TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Link to public proposal page */}
-                        <Link href={`/proposta/${prop.id}`} target="_blank">
-                          <Button variant="outline" size="sm" className="h-8 gap-1" title="Ver Link Público da Proposta">
-                            Página Aceite <ExternalLink className="h-3 w-3" />
-                          </Button>
-                        </Link>
-
-                        {/* Send proposal flow mock */}
-                        {prop.status === 'draft' && (
-                          <Button 
-                            variant="secondary" 
-                            size="sm" 
-                            onClick={() => updateProposalStatus(prop.id, 'sent')}
-                            className="h-8 gap-1 text-primary hover:text-primary border border-border"
-                          >
-                            <Send className="h-3 w-3" /> Enviar
-                          </Button>
-                        )}
-
-                        {prop.status === 'sent' && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => updateProposalStatus(prop.id, 'viewed')}
-                            className="h-8 text-xs font-semibold text-amber-500 border-amber-500/20 hover:bg-amber-500/5"
-                          >
-                            Marcar Visualizada
-                          </Button>
-                        )}
+                  <div key={prop.id} className="py-4 space-y-3.5 first:pt-0 last:pb-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <span className="font-semibold text-sm text-foreground block">{prop.companyName}</span>
+                        <span className="text-[10px] text-muted-foreground">Contato: {prop.clientName}</span>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                      <StatusBadge type="proposal" status={prop.status} />
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-xs text-foreground font-medium block truncate max-w-xs">{prop.description}</span>
+                      <span className="text-[10px] text-muted-foreground block">Criação: {new Date(prop.createdAt).toLocaleDateString('pt-BR')}</span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2.5 text-xs text-muted-foreground">
+                      <div className="p-2 bg-muted/20 border border-border/40 rounded-lg">
+                        <span className="text-[9px] block">Mensal</span>
+                        <strong className="text-foreground text-xs block mt-0.5">R$ {prop.monthlyValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                      </div>
+                      <div className="p-2 bg-muted/20 border border-border/40 rounded-lg">
+                        <span className="text-[9px] block">Total</span>
+                        <strong className="text-foreground text-xs block mt-0.5">R$ {prop.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                      </div>
+                      <div className="p-2 bg-muted/20 border border-border/40 rounded-lg">
+                        <span className="text-[9px] block">Validade</span>
+                        <strong className="text-foreground text-[10px] block mt-0.5 truncate">{new Date(prop.validityDate).toLocaleDateString('pt-BR')}</strong>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <Link href={`/proposta/${prop.id}`} target="_blank" className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full h-8.5 text-xs gap-1.5">
+                          Aceite <ExternalLink className="h-3.5 w-3.5" />
+                        </Button>
+                      </Link>
+
+                      {prop.status === 'draft' && (
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          onClick={() => updateProposalStatus(prop.id, 'sent')}
+                          className="flex-1 h-8.5 text-xs gap-1.5 text-primary border border-border"
+                        >
+                          <Send className="h-3 w-3" /> Enviar
+                        </Button>
+                      )}
+
+                      {prop.status === 'sent' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => updateProposalStatus(prop.id, 'viewed')}
+                          className="flex-1 h-8.5 text-xs font-semibold text-amber-500 border-amber-500/20 hover:bg-amber-500/5"
+                        >
+                          Visualizada
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

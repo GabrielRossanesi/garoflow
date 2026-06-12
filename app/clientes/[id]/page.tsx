@@ -5,13 +5,13 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Building2, Phone, Mail, User, ShieldAlert, ArrowLeft,
-  FileSignature, CreditCard, UserPlus, Image, CheckSquare, 
-  History, ExternalLink, Calendar, Plus, RefreshCw, Send, Check, AlertCircle, Save
+  FileSignature, CreditCard, UserPlus, Image as ImageIcon, CheckSquare, 
+  History, ExternalLink, Calendar, Plus, Check, AlertCircle, Save,
+  ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useStore } from '../../../lib/store';
 import { useMounted } from '../../../hooks/useMounted';
 import type { TaskPriority } from '../../../types';
-import { PageHeader as UIHeader } from '../../../components/ui/page-header';
 import Button from '../../../components/ui/button';
 import Input from '../../../components/ui/input';
 import Textarea from '../../../components/ui/textarea';
@@ -23,6 +23,7 @@ import Tabs, { TabsList, TabsTrigger, TabsContent } from '../../../components/ui
 import Table, { TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../../components/ui/table';
 import EmptyState from '../../../components/ui/empty-state';
 import DatePicker from '../../../components/ui/date-picker';
+import { SetupProgressModal, SetupIndicator } from '../../../components/ui/setup-progress-modal';
 
 export default function ClientProfilePage() {
   const params = useParams();
@@ -34,7 +35,7 @@ export default function ClientProfilePage() {
     clients, proposals, contracts, charges, onboardings, 
     publications, tasks, historyEvents, signContractFlow, 
     confirmPaymentFlow, updateOnboardingStep, updateOnboardingLinks,
-    updatePublicationStatus, addTask, updateTaskStatus, updateClientStatus, teamMembers
+    updatePublicationStatus, addTask, updateTaskStatus, teamMembers
   } = useStore();
 
   // Selected client
@@ -45,6 +46,34 @@ export default function ClientProfilePage() {
   const [driveLink, setDriveLink] = useState(onboarding?.links.googleDrive || '');
   const [clickupLink, setClickupLink] = useState(onboarding?.links.clickup || '');
   const [whatsappLink, setWhatsappLink] = useState(onboarding?.links.whatsAppGroup || '');
+
+  // Tab state synchronization with query params
+  const [activeTab, setActiveTab] = useState('dados');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tab = searchParams.get('tab');
+      if (tab && ['dados', 'financeiro', 'onboarding', 'publicacoes', 'tarefas', 'historico'].includes(tab)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setActiveTab(tab);
+      }
+    }
+  }, []);
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', newTab);
+      window.history.replaceState(null, '', url.toString());
+    }
+  };
+
+  // Collapsible section states for Financeiro tab
+  const [isContractsExpanded, setIsContractsExpanded] = useState(true);
+  const [isChargesExpanded, setIsChargesExpanded] = useState(true);
+  const [isProposalsExpanded, setIsProposalsExpanded] = useState(true);
 
   // Add Task states
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -62,9 +91,7 @@ export default function ClientProfilePage() {
     if (onboarding) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDriveLink(onboarding.links.googleDrive || '');
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setClickupLink(onboarding.links.clickup || '');
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWhatsappLink(onboarding.links.whatsAppGroup || '');
     }
   }, [onboarding]);
@@ -178,12 +205,12 @@ export default function ClientProfilePage() {
       </div>
 
       {/* Main Tabs Navigation */}
-      <Tabs defaultValue="dados">
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="dados"><Building2 className="h-3.5 w-3.5 mr-1.5" /> Dados da Empresa</TabsTrigger>
           <TabsTrigger value="financeiro"><CreditCard className="h-3.5 w-3.5 mr-1.5" /> Financeiro &amp; Contratos</TabsTrigger>
           <TabsTrigger value="onboarding"><UserPlus className="h-3.5 w-3.5 mr-1.5" /> Onboarding Checklist</TabsTrigger>
-          <TabsTrigger value="publicacoes"><Image className="h-3.5 w-3.5 mr-1.5" /> Redes Sociais</TabsTrigger>
+          <TabsTrigger value="publicacoes"><ImageIcon className="h-3.5 w-3.5 mr-1.5" /> Redes Sociais</TabsTrigger>
           <TabsTrigger value="tarefas"><CheckSquare className="h-3.5 w-3.5 mr-1.5" /> Tarefas ({clientTasks.length})</TabsTrigger>
           <TabsTrigger value="historico"><History className="h-3.5 w-3.5 mr-1.5" /> Histórico</TabsTrigger>
         </TabsList>
@@ -249,207 +276,283 @@ export default function ClientProfilePage() {
         </TabsContent>
 
         {/* Tab 2: Financials & Contracts */}
-        <TabsContent value="financeiro" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Box (Contracts) */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <div>
-                    <CardTitle className="text-base font-bold">Registro de Contrato (ZapSign)</CardTitle>
-                    <CardDescription>Contrato formal eletrônico gerado a partir do aceite da proposta.</CardDescription>
+        <TabsContent value="financeiro" className="space-y-4">
+          
+          {/* Section 1: Contrato (ZapSign) */}
+          <Card className="border-border/55">
+            <button 
+              onClick={() => setIsContractsExpanded(!isContractsExpanded)}
+              className="w-full flex items-center justify-between p-5 cursor-pointer text-left focus:outline-none"
+            >
+              <div className="space-y-0.5">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <FileSignature className="h-4.5 w-4.5 text-primary" />
+                  Registro de Contrato (ZapSign)
+                </CardTitle>
+                <CardDescription className="text-xs">Contrato formal eletrônico gerado a partir do aceite da proposta.</CardDescription>
+              </div>
+              <div className="flex items-center gap-3">
+                {clientContract && <StatusBadge type="contract" status={clientContract.status} />}
+                {isContractsExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </div>
+            </button>
+            
+            {isContractsExpanded && (
+              <CardContent className="pt-0 pb-5">
+                {!clientContract ? (
+                  <div className="text-center py-6 text-sm text-muted-foreground">
+                    <p className="mb-1">Nenhum contrato gerado para este cliente.</p>
+                    <span className="text-xs">Para gerar um contrato automático, crie e aprove uma proposta comercial.</span>
                   </div>
-                  {clientContract && <StatusBadge type="contract" status={clientContract.status} />}
-                </CardHeader>
-                <CardContent>
-                  {!clientContract ? (
-                    <div className="text-center py-6 text-sm text-muted-foreground">
-                      <p className="mb-2">Nenhum contrato gerado para este cliente.</p>
-                      <span className="text-xs">Para gerar um contrato automático, crie e aprove uma proposta comercial.</span>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                      <div className="p-3 bg-muted/20 border border-border/50 rounded-lg">
+                        <span className="text-xs text-muted-foreground block">Tipo de Serviço</span>
+                        <strong className="text-foreground text-sm block mt-1 leading-tight">{clientContract.type}</strong>
+                      </div>
+                      <div className="p-3 bg-muted/20 border border-border/50 rounded-lg">
+                        <span className="text-xs text-muted-foreground block">Versão do Documento</span>
+                        <strong className="text-foreground text-sm block mt-1 leading-tight">{clientContract.version}</strong>
+                      </div>
+                      <div className="p-3 bg-muted/20 border border-border/50 rounded-lg">
+                        <span className="text-xs text-muted-foreground block">Valor Recorrente Mensal</span>
+                        <strong className="text-foreground text-sm block mt-1 leading-tight">R$ {clientContract.monthlyValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                      </div>
+                      <div className="p-3 bg-muted/20 border border-border/50 rounded-lg">
+                        <span className="text-xs text-muted-foreground block">Início das Operações</span>
+                        <strong className="text-foreground text-sm block mt-1 leading-tight">{new Date(clientContract.startDate).toLocaleDateString('pt-BR')}</strong>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="p-3 bg-muted/20 border border-border/60 rounded-lg">
-                          <span className="text-xs text-muted-foreground block">Tipo de Serviço</span>
-                          <strong className="text-foreground text-sm block mt-1">{clientContract.type}</strong>
+
+                    {/* Sign contract mock action */}
+                    {clientContract.status === 'pending_signatures' && (
+                      <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl space-y-3">
+                        <div className="flex items-start gap-2.5">
+                          <FileSignature className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                          <div className="text-xs leading-relaxed">
+                            <span className="font-semibold text-foreground block">Simulador de Assinatura Eletrônica (ZapSign)</span>
+                            Este contrato aguarda assinaturas. Clique no botão abaixo para simular o aceite digital do cliente final.
+                          </div>
                         </div>
-                        <div className="p-3 bg-muted/20 border border-border/60 rounded-lg">
-                          <span className="text-xs text-muted-foreground block">Versão do Documento</span>
-                          <strong className="text-foreground text-sm block mt-1">{clientContract.version}</strong>
-                        </div>
-                        <div className="p-3 bg-muted/20 border border-border/60 rounded-lg">
-                          <span className="text-xs text-muted-foreground block">Valor Recorrente Mensal</span>
-                          <strong className="text-foreground text-sm block mt-1">R$ {clientContract.monthlyValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
-                        </div>
-                        <div className="p-3 bg-muted/20 border border-border/60 rounded-lg">
-                          <span className="text-xs text-muted-foreground block">Início das Operações</span>
-                          <strong className="text-foreground text-sm block mt-1">{new Date(clientContract.startDate).toLocaleDateString('pt-BR')}</strong>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => signContractFlow(clientContract.id)}
+                            className="h-8 text-xs font-semibold gap-1.5"
+                          >
+                            <Check className="h-3.5 w-3.5" /> Assinar Contrato (Simulado)
+                          </Button>
+                          {clientContract.documentUrl && (
+                            <a 
+                              href={clientContract.documentUrl} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 hover:underline ml-2"
+                            >
+                              Link ZapSign <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
                         </div>
                       </div>
+                    )}
 
-                      {/* Sign contract mock action */}
-                      {clientContract.status === 'pending_signatures' && (
-                        <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl space-y-3">
-                          <div className="flex items-start gap-2.5">
-                            <FileSignature className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                            <div className="text-xs">
-                              <span className="font-semibold text-foreground block">Simulador de Assinatura Eletrônica (ZapSign)</span>
-                              Este contrato aguarda assinaturas. Clique no botão abaixo para simular o aceite digital do cliente final.
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              size="sm" 
-                              onClick={() => signContractFlow(clientContract.id)}
-                              className="h-8 text-xs font-semibold gap-1.5"
-                            >
-                              <Check className="h-3.5 w-3.5" /> Assinar Contrato (Simulado)
-                            </Button>
-                            {clientContract.documentUrl && (
-                              <a 
-                                href={clientContract.documentUrl} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 hover:underline ml-2"
-                              >
-                                Link ZapSign <ExternalLink className="h-3 w-3" />
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                    {clientContract.status === 'signed' && (
+                      <div className="p-3 bg-success/5 border border-success/20 rounded-xl flex items-center gap-2 text-xs text-success font-semibold">
+                        <Check className="h-4 w-4" /> Contrato Assinado por todos e ativo no ZapSign.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            )}
+          </Card>
 
-                      {clientContract.status === 'signed' && (
-                        <div className="p-3 bg-success/5 border border-success/20 rounded-xl flex items-center gap-2 text-xs text-success font-semibold">
-                          <Check className="h-4 w-4" /> Contrato Assinado por todos e ativo no ZapSign.
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Proposals history */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base font-bold">Propostas Comerciais Vinculadas</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {clientProposals.length === 0 ? (
-                    <div className="text-center py-6 text-sm text-muted-foreground">
-                      Nenhuma proposta elaborada.
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Descrição do Serviço</TableHead>
-                          <TableHead>Valor Total</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {clientProposals.map((prop) => (
-                          <TableRow key={prop.id}>
-                            <TableCell>
-                              <span className="font-medium text-foreground block truncate max-w-xs">{prop.description}</span>
-                              <span className="text-[10px] text-muted-foreground">Vencimento: {new Date(prop.validityDate).toLocaleDateString('pt-BR')}</span>
-                            </TableCell>
-                            <TableCell className="font-semibold text-foreground text-xs">
-                              R$ {prop.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </TableCell>
-                            <TableCell><StatusBadge type="proposal" status={prop.status} /></TableCell>
-                            <TableCell className="text-right">
-                              <Link href={`/proposta/${prop.id}`} target="_blank">
-                                <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
-                                  Link Público <ExternalLink className="h-3 w-3" />
-                                </Button>
-                              </Link>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Box (Charges/Billing) */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base font-bold">Cobranças &amp; Faturamento (Asaas)</CardTitle>
-                  <CardDescription>Vencimentos e compensações registradas no integrador financeiro.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {clientCharges.length === 0 ? (
-                    <div className="text-center py-6 text-sm text-muted-foreground">
-                      Nenhuma cobrança ativa de faturamento.
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {clientCharges.map((charge) => (
-                        <div 
-                          key={charge.id} 
-                          className="p-4 rounded-xl border border-border bg-muted/10 space-y-3.5"
-                        >
+          {/* Section 2: Cobranças & Faturamento (Asaas) */}
+          <Card className="border-border/55">
+            <button 
+              onClick={() => setIsChargesExpanded(!isChargesExpanded)}
+              className="w-full flex items-center justify-between p-5 cursor-pointer text-left focus:outline-none"
+            >
+              <div className="space-y-0.5">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <CreditCard className="h-4.5 w-4.5 text-primary" />
+                  Cobranças &amp; Faturamento (Asaas)
+                </CardTitle>
+                <CardDescription className="text-xs">Vencimentos e compensações registradas no integrador financeiro.</CardDescription>
+              </div>
+              <div className="flex items-center gap-3">
+                {clientCharges.length > 0 && (
+                  <span className="text-xs font-bold px-2 py-0.5 bg-muted rounded-full text-muted-foreground">
+                    {clientCharges.length}
+                  </span>
+                )}
+                {isChargesExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </div>
+            </button>
+            
+            {isChargesExpanded && (
+              <CardContent className="pt-0 pb-5">
+                {clientCharges.length === 0 ? (
+                  <div className="text-center py-6 text-sm text-muted-foreground">
+                    Nenhuma cobrança ativa de faturamento.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {clientCharges.map((charge) => (
+                      <div 
+                        key={charge.id} 
+                        className="p-4 rounded-xl border border-border bg-muted/10 space-y-3.5 flex flex-col justify-between"
+                      >
+                        <div>
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[11px] font-mono text-muted-foreground">Ref: {charge.id}</span>
+                            <span className="text-[10px] font-mono text-muted-foreground">Ref: {charge.id}</span>
                             <StatusBadge type="charge" status={charge.status} />
                           </div>
                           
-                          <div className="flex items-baseline justify-between">
+                          <div className="flex items-baseline justify-between mt-2.5">
                             <span className="text-lg font-bold text-foreground">
                               R$ {charge.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-[11px] text-muted-foreground">
                               Venc: {new Date(charge.dueDate).toLocaleDateString('pt-BR')}
                             </span>
                           </div>
+                        </div>
 
-                          {/* Pix mockup simulator */}
-                          {charge.status === 'pending' && (
-                            <div className="space-y-3 pt-3 border-t border-border/40">
-                              <div className="p-3 bg-muted/40 rounded-lg text-[10px] text-muted-foreground font-mono break-all border border-border select-all" title="Clique para copiar">
-                                pix-copy-paste-code-mock-hub-power-cobranca-{charge.id}-000000000000
-                              </div>
-                              
-                              <div className="p-3 bg-warning/5 border border-warning/20 rounded-lg text-xs space-y-2">
-                                <div className="text-warning font-semibold flex items-center gap-1.5">
-                                  <AlertCircle className="h-4 w-4" /> Webhook Asaas Simulator
-                                </div>
-                                <p className="text-muted-foreground text-[11px] leading-relaxed">
-                                  Simule a recepção do webhook do Asaas informando a compensação do Pix do cliente.
-                                </p>
-                                <Button 
-                                  size="sm" 
-                                  variant="secondary" 
-                                  onClick={() => confirmPaymentFlow(charge.id)}
-                                  className="w-full text-xs font-semibold h-8"
-                                >
-                                  Simular PIX Pago (Compensar)
-                                </Button>
-                              </div>
+                        {/* Pix mockup simulator */}
+                        {charge.status === 'pending' && (
+                          <div className="space-y-3 pt-3 border-t border-border/40 mt-3">
+                            <div className="p-2.5 bg-muted/40 rounded-lg text-[10px] text-muted-foreground font-mono break-all border border-border select-all" title="Clique para copiar">
+                              pix-copy-paste-code-mock-hub-power-cobranca-{charge.id}-000000000000
                             </div>
-                          )}
+                            
+                            <div className="p-3 bg-warning/5 border border-warning/20 rounded-lg text-xs space-y-2">
+                              <div className="text-warning font-semibold flex items-center gap-1.5">
+                                <AlertCircle className="h-4 w-4" /> Webhook Asaas Simulator
+                              </div>
+                              <p className="text-muted-foreground text-[10px] leading-relaxed">
+                                Simule a compensação do Pix do cliente no Asaas.
+                              </p>
+                              <Button 
+                                size="sm" 
+                                variant="secondary" 
+                                onClick={() => confirmPaymentFlow(charge.id)}
+                                className="w-full text-xs font-semibold h-8"
+                              >
+                                Simular PIX Pago (Compensar)
+                              </Button>
+                            </div>
+                          </div>
+                        )}
 
-                          {charge.status === 'paid' && (
-                            <div className="pt-2 border-t border-border/20 text-xs text-success font-semibold flex items-center justify-between">
-                              <span>Compensado em:</span>
-                              <span>{charge.paidAt ? new Date(charge.paidAt).toLocaleDateString('pt-BR') : ''}</span>
-                            </div>
-                          )}
+                        {charge.status === 'paid' && (
+                          <div className="pt-2 border-t border-border/20 text-xs text-success font-semibold flex items-center justify-between mt-3">
+                            <span>Compensado em:</span>
+                            <span>{charge.paidAt ? new Date(charge.paidAt).toLocaleDateString('pt-BR') : ''}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Section 3: Propostas Comerciais */}
+          <Card className="border-border/55">
+            <button 
+              onClick={() => setIsProposalsExpanded(!isProposalsExpanded)}
+              className="w-full flex items-center justify-between p-5 cursor-pointer text-left focus:outline-none"
+            >
+              <div className="space-y-0.5">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <FileSignature className="h-4.5 w-4.5 text-primary" />
+                  Propostas Comerciais Vinculadas
+                </CardTitle>
+                <CardDescription className="text-xs">Propostas comerciais geradas e enviadas ao cliente.</CardDescription>
+              </div>
+              <div className="flex items-center gap-3">
+                {clientProposals.length > 0 && (
+                  <span className="text-xs font-bold px-2 py-0.5 bg-muted rounded-full text-muted-foreground">
+                    {clientProposals.length}
+                  </span>
+                )}
+                {isProposalsExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </div>
+            </button>
+            
+            {isProposalsExpanded && (
+              <CardContent className="pt-0 pb-5 px-0 md:px-6">
+                {clientProposals.length === 0 ? (
+                  <div className="text-center py-6 text-sm text-muted-foreground">
+                    Nenhuma proposta elaborada.
+                  </div>
+                ) : (
+                  <>
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Descrição do Serviço</TableHead>
+                            <TableHead>Valor Total</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {clientProposals.map((prop) => (
+                            <TableRow key={prop.id}>
+                              <TableCell>
+                                <span className="font-medium text-foreground block truncate max-w-xs">{prop.description}</span>
+                                <span className="text-[10px] text-muted-foreground">Vencimento: {new Date(prop.validityDate).toLocaleDateString('pt-BR')}</span>
+                              </TableCell>
+                              <TableCell className="font-semibold text-foreground text-xs">
+                                R$ {prop.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell><StatusBadge type="proposal" status={prop.status} /></TableCell>
+                              <TableCell className="text-right">
+                                <Link href={`/proposta/${prop.id}`} target="_blank">
+                                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                                    Link Público <ExternalLink className="h-3 w-3" />
+                                  </Button>
+                                </Link>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="block md:hidden divide-y divide-border/30 px-4">
+                      {clientProposals.map((prop) => (
+                        <div key={prop.id} className="py-4 space-y-3 first:pt-0 last:pb-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-sm text-foreground block truncate max-w-[180px]">{prop.description}</span>
+                            <StatusBadge type="proposal" status={prop.status} />
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>Vencimento: {new Date(prop.validityDate).toLocaleDateString('pt-BR')}</span>
+                            <span className="font-bold text-foreground">R$ {prop.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="flex justify-end pt-1">
+                            <Link href={`/proposta/${prop.id}`} target="_blank" className="w-full">
+                              <Button variant="outline" size="sm" className="w-full h-8 text-xs gap-1.5">
+                                Link Público <ExternalLink className="h-3.5 w-3.5" />
+                              </Button>
+                            </Link>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                  </>
+                )}
+              </CardContent>
+            )}
+          </Card>
         </TabsContent>
 
         {/* Tab 3: Onboarding Pipeline */}
@@ -768,48 +871,92 @@ export default function ClientProfilePage() {
                   />
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Título da Tarefa</TableHead>
-                      <TableHead>Responsável</TableHead>
-                      <TableHead>Prazo</TableHead>
-                      <TableHead>Prioridade</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ação</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <>
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Título da Tarefa</TableHead>
+                          <TableHead>Responsável</TableHead>
+                          <TableHead>Prazo</TableHead>
+                          <TableHead>Prioridade</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Ação</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {clientTasks.map((task) => (
+                          <TableRow key={task.id}>
+                            <TableCell>
+                              <div className="font-semibold text-foreground">{task.title}</div>
+                              {task.description && <div className="text-xs text-muted-foreground mt-0.5">{task.description}</div>}
+                            </TableCell>
+                            <TableCell className="text-xs text-foreground font-medium">{task.responsibleUser}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{new Date(task.dueDate).toLocaleDateString('pt-BR')}</TableCell>
+                            <TableCell><StatusBadge type="priority" status={task.priority} /></TableCell>
+                            <TableCell><StatusBadge type="task" status={task.status} /></TableCell>
+                            <TableCell className="text-right">
+                              {task.status !== 'completed' ? (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => updateTaskStatus(task.id, 'completed')}
+                                  className="h-8 text-xs gap-1 border-success/35 hover:bg-success/5 text-success-foreground hover:text-success-foreground"
+                                >
+                                  <Check className="h-3.5 w-3.5 text-success" /> Concluir
+                                </Button>
+                              ) : (
+                                <span className="text-xs font-semibold text-success flex items-center gap-1 justify-end">
+                                  <Check className="h-3.5 w-3.5" /> Concluída
+                                </span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className="block md:hidden divide-y divide-border/30 px-4">
                     {clientTasks.map((task) => (
-                      <TableRow key={task.id}>
-                        <TableCell>
-                          <div className="font-semibold text-foreground">{task.title}</div>
-                          {task.description && <div className="text-xs text-muted-foreground mt-0.5">{task.description}</div>}
-                        </TableCell>
-                        <TableCell className="text-xs text-foreground font-medium">{task.responsibleUser}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{new Date(task.dueDate).toLocaleDateString('pt-BR')}</TableCell>
-                        <TableCell><StatusBadge type="priority" status={task.priority} /></TableCell>
-                        <TableCell><StatusBadge type="task" status={task.status} /></TableCell>
-                        <TableCell className="text-right">
+                      <div key={task.id} className="py-4 space-y-3 first:pt-0 last:pb-0">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <span className="font-semibold text-sm text-foreground block leading-tight">{task.title}</span>
+                            {task.description && <p className="text-xs text-muted-foreground mt-1">{task.description}</p>}
+                          </div>
+                          <StatusBadge type="task" status={task.status} />
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Prazo: {new Date(task.dueDate).toLocaleDateString('pt-BR')}</span>
+                          <div className="flex items-center gap-2">
+                            <span>Prioridade:</span>
+                            <StatusBadge type="priority" status={task.priority} />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                          <span>Responsável: {task.responsibleUser}</span>
                           {task.status !== 'completed' ? (
                             <Button 
                               variant="outline" 
                               size="sm" 
                               onClick={() => updateTaskStatus(task.id, 'completed')}
-                              className="h-8 text-xs gap-1 border-success/35 hover:bg-success/5 text-success-foreground hover:text-success-foreground"
+                              className="h-7 text-[10px] gap-1 border-success/35 hover:bg-success/5 text-success-foreground"
                             >
-                              <Check className="h-3.5 w-3.5 text-success" /> Concluir
+                              <Check className="h-3 w-3" /> Concluir
                             </Button>
                           ) : (
-                            <span className="text-xs font-semibold text-success flex items-center gap-1 justify-end">
+                            <span className="text-xs font-semibold text-success flex items-center gap-0.5">
                               <Check className="h-3.5 w-3.5" /> Concluída
                             </span>
                           )}
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </div>
                     ))}
-                  </TableBody>
-                </Table>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -909,6 +1056,10 @@ export default function ClientProfilePage() {
           </div>
         </form>
       </Modal>
+
+      {/* Automação setup progress */}
+      <SetupProgressModal />
+      <SetupIndicator />
     </div>
   );
 }

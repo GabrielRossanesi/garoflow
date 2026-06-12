@@ -2,12 +2,12 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { 
   Client, ClientStatus,
-  Proposal, ProposalStatus, ProposalItem,
+  Proposal, ProposalStatus,
   Contract, ContractStatus,
   Charge, ChargeStatus,
   Onboarding, OnboardingStepStatus,
   Publication, PublicationStatus,
-  TeamTask, TaskStatus, TaskPriority,
+  TeamTask, TaskStatus,
   HistoryEvent, TeamMember
 } from '../types';
 
@@ -51,6 +51,12 @@ interface SystemState {
   
   addHistoryEvent: (event: Omit<HistoryEvent, 'id' | 'createdAt'>) => void;
   
+  activeSetupClientId: string | null;
+  activeSetupStep: 'payment' | 'drive' | 'clickup' | 'tasks' | 'completed' | 'none';
+  isSetupDismissed: boolean;
+  clearActiveSetup: () => void;
+  setSetupDismissed: (dismissed: boolean) => void;
+
   // CNPJ Mock API Simulator
   simulateCnpjSearch: (cnpj: string) => {
     companyName: string;
@@ -352,6 +358,11 @@ export const useStore = create<SystemState>()(
       historyEvents: initialHistory,
       teamMembers: initialTeamMembers,
       currentUser: initialTeamMembers[0], // Ana Silva default
+      activeSetupClientId: null,
+      activeSetupStep: 'none',
+      isSetupDismissed: false,
+      clearActiveSetup: () => set({ activeSetupClientId: null, activeSetupStep: 'none', isSetupDismissed: false }),
+      setSetupDismissed: (dismissed) => set({ isSetupDismissed: dismissed }),
       
       // Actions
       addClient: (clientData) => {
@@ -639,7 +650,10 @@ export const useStore = create<SystemState>()(
         
         // Update charge status to paid
         set((state) => ({
-          charges: state.charges.map((ch) => ch.id === id ? { ...ch, status: 'paid', paidAt: new Date().toISOString() } : ch)
+          charges: state.charges.map((ch) => ch.id === id ? { ...ch, status: 'paid', paidAt: new Date().toISOString() } : ch),
+          activeSetupClientId: charge.clientId,
+          activeSetupStep: 'payment',
+          isSetupDismissed: false
         }));
         
         get().addHistoryEvent({
@@ -666,7 +680,8 @@ export const useStore = create<SystemState>()(
               ...o,
               steps: { ...o.steps, driveCreated: 'completed' },
               links: { ...o.links, googleDrive: `https://drive.google.com/drive/folders/mock-${charge.clientId}` }
-            } : o)
+            } : o),
+            activeSetupStep: 'drive'
           }));
           
           get().addHistoryEvent({
@@ -677,7 +692,7 @@ export const useStore = create<SystemState>()(
             type: 'drive_created'
           });
         }, 1000);
-
+ 
         // 2. Setup ClickUp
         setTimeout(() => {
           set((state) => ({
@@ -685,7 +700,8 @@ export const useStore = create<SystemState>()(
               ...o,
               steps: { ...o.steps, clickupCreated: 'completed' },
               links: { ...o.links, clickup: `https://app.clickup.com/folders/mock-${charge.clientId}`, whatsAppGroup: `https://chat.whatsapp.com/mock-${charge.clientId}` }
-            } : o)
+            } : o),
+            activeSetupStep: 'clickup'
           }));
           
           get().addHistoryEvent({
@@ -696,11 +712,11 @@ export const useStore = create<SystemState>()(
             type: 'clickup_created'
           });
         }, 2000);
-
+ 
         // 3. Setup Tasks
         setTimeout(() => {
           // Generate onboarding tasks
-          const onboardingMeetingTask = get().addTask({
+          get().addTask({
             title: 'Reunião de Alinhamento de Onboarding',
             clientId: charge.clientId,
             clientName: charge.clientName,
@@ -710,8 +726,8 @@ export const useStore = create<SystemState>()(
             priority: 'high',
             description: 'Primeira conversa oficial pós-pagamento para definição de cronograma operacional.'
           });
-
-          const editorialTask = get().addTask({
+ 
+          get().addTask({
             title: 'Planejar Calendário Editorial e Grade de Temas',
             clientId: charge.clientId,
             clientName: charge.clientName,
@@ -726,9 +742,25 @@ export const useStore = create<SystemState>()(
             onboardings: state.onboardings.map((o) => o.clientId === charge.clientId ? {
               ...o,
               steps: { ...o.steps, tasksCreated: 'completed' }
-            } : o)
+            } : o),
+            activeSetupStep: 'tasks'
           }));
         }, 3000);
+
+        // 4. Completed step
+        setTimeout(() => {
+          set(() => ({
+            activeSetupStep: 'completed'
+          }));
+        }, 4000);
+
+        // 5. Hide Modal after completion
+        setTimeout(() => {
+          set(() => ({
+            activeSetupClientId: null,
+            activeSetupStep: 'none'
+          }));
+        }, 5500);
       },
       
       updateOnboardingStep: (clientId, stepName, status) => {

@@ -195,46 +195,93 @@ export default function ClientesPage() {
               />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Empresa / Razão Social</TableHead>
-                  <TableHead>Contato Principal</TableHead>
-                  <TableHead>CNPJ</TableHead>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead>Status Comercial</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Empresa / Razão Social</TableHead>
+                      <TableHead>Contato Principal</TableHead>
+                      <TableHead>CNPJ</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead>Status Comercial</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredClients.map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell>
+                          <div className="font-semibold text-foreground">{client.companyName}</div>
+                          <div className="text-xs text-muted-foreground">{client.email}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-foreground font-medium">{client.name}</div>
+                          <div className="text-xs text-muted-foreground">{client.phone}</div>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">{client.cnpj}</TableCell>
+                        <TableCell>
+                          <div className="text-xs font-medium text-foreground">{client.responsibleUser}</div>
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge type="client" status={client.commercialStatus} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Link href={`/clientes/${client.id}`}>
+                            <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                              <Eye className="h-3.5 w-3.5" /> Detalhes
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="block md:hidden divide-y divide-border/30 px-4">
                 {filteredClients.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell>
-                      <div className="font-semibold text-foreground">{client.companyName}</div>
-                      <div className="text-xs text-muted-foreground">{client.email}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-foreground font-medium">{client.name}</div>
-                      <div className="text-xs text-muted-foreground">{client.phone}</div>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{client.cnpj}</TableCell>
-                    <TableCell>
-                      <div className="text-xs font-medium text-foreground">{client.responsibleUser}</div>
-                    </TableCell>
-                    <TableCell>
+                  <div key={client.id} className="py-4 space-y-3.5 first:pt-0 last:pb-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <span className="font-semibold text-sm text-foreground block">{client.companyName}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">CNPJ: {client.cnpj}</span>
+                      </div>
                       <StatusBadge type="client" status={client.commercialStatus} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/clientes/${client.id}`}>
-                        <Button variant="outline" size="sm" className="h-8 gap-1.5">
-                          <Eye className="h-3.5 w-3.5" /> Detalhes
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                      <div className="p-2 bg-muted/20 border border-border/40 rounded-lg">
+                        <span className="text-[10px] text-muted-foreground block">Contato</span>
+                        <strong className="text-foreground text-xs block mt-0.5 truncate">{client.name}</strong>
+                      </div>
+                      <div className="p-2 bg-muted/20 border border-border/40 rounded-lg">
+                        <span className="text-[10px] text-muted-foreground block">Telefone</span>
+                        <strong className="text-foreground text-xs block mt-0.5 truncate">{client.phone}</strong>
+                      </div>
+                      <div className="p-2 bg-muted/20 border border-border/40 rounded-lg col-span-2">
+                        <span className="text-[10px] text-muted-foreground block">Email</span>
+                        <strong className="text-foreground text-[11px] block mt-0.5 truncate">{client.email}</strong>
+                      </div>
+                      <div className="p-2 bg-muted/20 border border-border/40 rounded-lg">
+                        <span className="text-[10px] text-muted-foreground block">Responsável</span>
+                        <strong className="text-foreground text-xs block mt-0.5 truncate">{client.responsibleUser}</strong>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-1">
+                      <Link href={`/clientes/${client.id}`} className="w-full">
+                        <Button variant="outline" size="sm" className="w-full h-8.5 text-xs gap-1.5">
+                          <Eye className="h-3.5 w-3.5" /> Detalhes do Cliente
                         </Button>
                       </Link>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

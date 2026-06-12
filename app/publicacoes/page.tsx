@@ -209,10 +209,10 @@ export default function PublicacoesPage() {
                       className="text-xs bg-background"
                     />
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button 
                         size="sm" 
-                        className="flex-1 text-xs h-8.5 gap-1.5"
+                        className="w-full sm:flex-1 text-xs h-8.5 gap-1.5 justify-center"
                         onClick={() => updatePublicationStatus(pub.id, 'approved')}
                       >
                         <Check className="h-3.5 w-3.5" /> Aprovar Post
@@ -220,7 +220,7 @@ export default function PublicacoesPage() {
                       <Button 
                         size="sm" 
                         variant="danger" 
-                        className="flex-1 text-xs h-8.5 gap-1.5"
+                        className="w-full sm:flex-1 text-xs h-8.5 gap-1.5 justify-center"
                         onClick={() => {
                           if (!pubComments[pub.id]) {
                             alert('Informe o ajuste necessário no campo de texto.');

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Power, FileText, CheckCircle2, ShieldAlert, Calendar, CreditCard, Clock, Check, X } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { Power, CheckCircle2, ShieldAlert, Calendar, CreditCard, Clock, Check, X } from 'lucide-react';
 import { useStore } from '../../../lib/store';
 import { useMounted } from '../../../hooks/useMounted';
 import Button from '../../../components/ui/button';

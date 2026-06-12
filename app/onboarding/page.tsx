@@ -3,16 +3,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { 
-  UserPlus, ExternalLink, Calendar, User, 
-  FileSignature, CreditCard, FolderOpen, 
-  CheckSquare, ArrowRight, MessageSquare, Play 
+  UserPlus, Calendar, User, 
+  FolderOpen, CheckSquare, ArrowRight, MessageSquare
 } from 'lucide-react';
 import { useStore } from '../../lib/store';
 import { useMounted } from '../../hooks/useMounted';
 import { PageHeader as UIHeader } from '../../components/ui/page-header';
 import Button from '../../components/ui/button';
 import Card, { CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/card';
-import StatusBadge from '../../components/ui/status-badge';
+import { SetupProgressModal, SetupIndicator } from '../../components/ui/setup-progress-modal';
 import EmptyState from '../../components/ui/empty-state';
 
 export default function OnboardingPage() {
@@ -188,6 +187,10 @@ export default function OnboardingPage() {
           })}
         </div>
       )}
+
+      {/* Automação setup progress */}
+      <SetupProgressModal />
+      <SetupIndicator />
     </div>
   );
 }
