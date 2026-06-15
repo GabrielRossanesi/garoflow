@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { 
+import {
   Client, ClientStatus,
   Proposal, ProposalStatus,
   Contract, ContractStatus,
@@ -10,8 +10,60 @@ import {
   TeamTask, TaskStatus,
   HistoryEvent, TeamMember,
   Organization, PlanType, PlanLimits, UserRole,
-  TenantIntegration, Lead, LeadStatus, LeadTemperature
+  TenantIntegration, Lead, LeadStatus, LeadTemperature,
+  OrganizationFeatures
 } from '../types';
+
+export const getPlanDefaultFeatures = (planId: PlanType): Omit<OrganizationFeatures, 'organizationId'> => {
+  switch (planId) {
+    case 'starter':
+      return {
+        leads: true,
+        clients: true,
+        proposals: true,
+        contracts: false,
+        charges: false,
+        onboarding: false,
+        publications: false,
+        tasks: true,
+        history: true,
+        integrations: false,
+        team: false,
+        publicProposal: true
+      };
+    case 'pro':
+      return {
+        leads: true,
+        clients: true,
+        proposals: true,
+        contracts: true,
+        charges: true,
+        onboarding: true,
+        publications: true,
+        tasks: true,
+        history: true,
+        integrations: true,
+        team: true,
+        publicProposal: true
+      };
+    case 'enterprise':
+    default:
+      return {
+        leads: true,
+        clients: true,
+        proposals: true,
+        contracts: true,
+        charges: true,
+        onboarding: true,
+        publications: true,
+        tasks: true,
+        history: true,
+        integrations: true,
+        team: true,
+        publicProposal: true
+      };
+  }
+};
 
 interface SystemState {
   organizations: Organization[];
@@ -28,42 +80,68 @@ interface SystemState {
   currentUser: TeamMember;
   integrations: TenantIntegration[];
   leads: Lead[];
-  
+  organizationFeatures: OrganizationFeatures[];
+
+
   // Actions
   setCurrentOrganizationId: (id: string) => void;
   upgradePlan: (planId: PlanType, orgId?: string) => void;
-  updateOrganizationStatus: (orgId: string, status: 'active' | 'suspended' | 'trial') => void;
+  updateOrganizationStatus: (orgId: string, status: 'active' | 'suspended' | 'trial' | 'pending') => void;
   updateTeamMemberRole: (id: string, role: UserRole) => void;
   updateTeamMemberStatus: (id: string, status: 'active' | 'pending' | 'disabled') => void;
   checkLimit: (type: 'clients' | 'users' | 'proposals' | 'tasks', orgId?: string) => boolean;
-  
+  addOrganization: (organization: Organization) => void;
+  addTeamMember: (member: TeamMember) => void;
+  createOrganization: (data: {
+    name: string;
+    cnpj: string;
+    email: string;
+    phone: string;
+    segment: string;
+    cityUf: string;
+    responsibleName: string;
+    responsibleEmail: string;
+    planId: PlanType;
+    status: 'active' | 'suspended' | 'trial' | 'pending';
+    notes?: string;
+    features: Omit<OrganizationFeatures, 'organizationId'>;
+    ownerUser: {
+      name: string;
+      email: string;
+      role: string;
+      userRole: UserRole;
+      status: 'active' | 'pending';
+    };
+    createMockData?: boolean;
+  }) => void;
+
   addClient: (client: Omit<Client, 'id' | 'organizationId' | 'createdAt'> & { organizationId?: string }) => Client | null;
   updateClientStatus: (id: string, status: ClientStatus) => void;
-  
+
   addProposal: (proposal: Omit<Proposal, 'id' | 'organizationId' | 'createdAt' | 'status'> & { organizationId?: string }) => Proposal | null;
   updateProposalStatus: (id: string, status: ProposalStatus) => void;
   acceptProposalFlow: (id: string) => void;
   declineProposalFlow: (id: string) => void;
-  
+
   addContract: (contract: Omit<Contract, 'id' | 'organizationId' | 'createdAt'> & { organizationId?: string }) => Contract;
   updateContractStatus: (id: string, status: ContractStatus) => void;
   signContractFlow: (id: string) => void;
-  
+
   addCharge: (charge: Omit<Charge, 'id' | 'organizationId' | 'createdAt'> & { organizationId?: string }) => Charge;
   updateChargeStatus: (id: string, status: ChargeStatus) => void;
   confirmPaymentFlow: (id: string) => void;
-  
+
   updateOnboardingStep: (clientId: string, stepName: keyof Onboarding['steps'], status: OnboardingStepStatus) => void;
   updateOnboardingLinks: (clientId: string, links: Partial<Onboarding['links']>) => void;
-  
+
   addPublication: (pub: Omit<Publication, 'id' | 'organizationId' | 'createdAt'> & { organizationId?: string }) => Publication;
   updatePublicationStatus: (id: string, status: PublicationStatus, comments?: string) => void;
-  
+
   addTask: (task: Omit<TeamTask, 'id' | 'organizationId' | 'createdAt'> & { organizationId?: string }) => TeamTask | null;
   updateTaskStatus: (id: string, status: TaskStatus) => void;
-  
+
   addHistoryEvent: (event: Omit<HistoryEvent, 'id' | 'organizationId' | 'createdAt'> & { organizationId?: string }) => void;
-  
+
   activeSetupClientId: string | null;
   activeSetupStep: 'payment' | 'drive' | 'clickup' | 'tasks' | 'completed' | 'none';
   isSetupDismissed: boolean;
@@ -92,6 +170,16 @@ interface SystemState {
   convertLeadToClient: (id: string) => Client | null;
   createProposalFromLead: (id: string) => Proposal | null;
   markLeadAsLost: (id: string, reason: string) => void;
+
+  // Organization features actions
+  getFeaturesByOrganization: (orgId: string) => OrganizationFeatures;
+  updateOrganizationFeature: (orgId: string, featureKey: keyof Omit<OrganizationFeatures, 'organizationId'>, enabled: boolean) => void;
+  updateOrganizationFeatures: (orgId: string, data: Partial<Omit<OrganizationFeatures, 'organizationId'>>) => void;
+  resetFeaturesToPlanDefaults: (orgId: string) => void;
+
+  // Sidebar collapse state
+  isSidebarCollapsed: boolean;
+  toggleSidebar: () => void;
 }
 
 const initialOrganizations: Organization[] = [
@@ -375,68 +463,68 @@ const initialLeads: Lead[] = [
 ];
 
 const initialTeamMembers: TeamMember[] = [
-  { 
-    id: '1', 
-    organizationId: 'org_hub_power', 
-    name: 'Ana Silva', 
-    role: 'Gestora de Contas / Onboarding', 
-    email: 'ana@powerponto.com.br', 
-    userRole: 'admin', 
+  {
+    id: '1',
+    organizationId: 'org_hub_power',
+    name: 'Ana Silva',
+    role: 'Gestora de Contas / Onboarding',
+    email: 'ana@powerponto.com.br',
+    userRole: 'admin',
     avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80',
     status: 'active',
     lastAccess: '2026-06-14T19:30:00Z'
   },
-  { 
-    id: '2', 
-    organizationId: 'org_hub_power', 
-    name: 'João Santos', 
-    role: 'Social Media & Designer', 
-    email: 'joao@powerponto.com.br', 
-    userRole: 'member', 
+  {
+    id: '2',
+    organizationId: 'org_hub_power',
+    name: 'João Santos',
+    role: 'Social Media & Designer',
+    email: 'joao@powerponto.com.br',
+    userRole: 'member',
     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80',
     status: 'active',
     lastAccess: '2026-06-14T18:45:00Z'
   },
-  { 
-    id: '3', 
-    organizationId: 'org_hub_power', 
-    name: 'Maria Souza', 
-    role: 'Gestora de Tráfego Pago', 
-    email: 'maria@powerponto.com.br', 
-    userRole: 'member', 
+  {
+    id: '3',
+    organizationId: 'org_hub_power',
+    name: 'Maria Souza',
+    role: 'Gestora de Tráfego Pago',
+    email: 'maria@powerponto.com.br',
+    userRole: 'member',
     avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=80',
     status: 'active',
     lastAccess: '2026-06-14T17:15:00Z'
   },
-  { 
-    id: '4', 
-    organizationId: 'org_hub_power', 
-    name: 'Carlos Santos', 
-    role: 'Diretor Comercial', 
-    email: 'carlos@powerponto.com.br', 
-    userRole: 'owner', 
+  {
+    id: '4',
+    organizationId: 'org_hub_power',
+    name: 'Carlos Santos',
+    role: 'Diretor Comercial',
+    email: 'carlos@powerponto.com.br',
+    userRole: 'owner',
     avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80',
     status: 'active',
     lastAccess: '2026-06-14T19:55:00Z'
   },
-  { 
-    id: '5', 
-    organizationId: 'org_spark', 
-    name: 'Roberto Lima', 
-    role: 'Diretor Criativo', 
-    email: 'roberto@sparkagency.com', 
-    userRole: 'owner', 
+  {
+    id: '5',
+    organizationId: 'org_spark',
+    name: 'Roberto Lima',
+    role: 'Diretor Criativo',
+    email: 'roberto@sparkagency.com',
+    userRole: 'owner',
     avatarUrl: '',
     status: 'active',
     lastAccess: '2026-06-14T12:00:00Z'
   },
-  { 
-    id: '6', 
-    organizationId: 'org_spark', 
-    name: 'Alice Costa', 
-    role: 'Copywriter & Ads', 
-    email: 'alice@sparkagency.com', 
-    userRole: 'member', 
+  {
+    id: '6',
+    organizationId: 'org_spark',
+    name: 'Alice Costa',
+    role: 'Copywriter & Ads',
+    email: 'alice@sparkagency.com',
+    userRole: 'member',
     avatarUrl: '',
     status: 'active',
     lastAccess: '2026-06-13T16:20:00Z'
@@ -1063,6 +1151,21 @@ const initialHistory: HistoryEvent[] = [
   }
 ];
 
+const initialFeatures: OrganizationFeatures[] = [
+  {
+    organizationId: 'org_hub_power',
+    ...getPlanDefaultFeatures('pro')
+  },
+  {
+    organizationId: 'org_spark',
+    ...getPlanDefaultFeatures('starter')
+  },
+  {
+    organizationId: 'org_morales',
+    ...getPlanDefaultFeatures('enterprise')
+  }
+];
+
 export const useStore = create<SystemState>()(
   persist(
     (set, get) => ({
@@ -1080,12 +1183,15 @@ export const useStore = create<SystemState>()(
       currentUser: initialTeamMembers[0], // Ana Silva default
       integrations: initialIntegrations,
       leads: initialLeads,
+      organizationFeatures: initialFeatures,
       activeSetupClientId: null,
       activeSetupStep: 'none',
       isSetupDismissed: false,
+      isSidebarCollapsed: false,
       clearActiveSetup: () => set({ activeSetupClientId: null, activeSetupStep: 'none', isSetupDismissed: false }),
       setSetupDismissed: (dismissed) => set({ isSetupDismissed: dismissed }),
-      
+      toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+
       setCurrentOrganizationId: (id) => {
         // Change currentUser dynamically depending on the selected organization to mock authentication
         const orgMembers = get().teamMembers.filter(m => m.organizationId === id);
@@ -1096,7 +1202,7 @@ export const useStore = create<SystemState>()(
       upgradePlan: (planId, orgId) => {
         const targetOrgId = orgId || get().currentOrganizationId;
         set((state) => ({
-          organizations: state.organizations.map((org) => 
+          organizations: state.organizations.map((org) =>
             org.id === targetOrgId ? { ...org, planId } : org
           )
         }));
@@ -1104,10 +1210,196 @@ export const useStore = create<SystemState>()(
 
       updateOrganizationStatus: (orgId, status) => {
         set((state) => ({
-          organizations: state.organizations.map((org) => 
+          organizations: state.organizations.map((org) =>
             org.id === orgId ? { ...org, status } : org
           )
         }));
+      },
+
+      addOrganization: (organization) => {
+        set((state) => ({
+          organizations: [...state.organizations, organization]
+        }));
+      },
+
+      addTeamMember: (member) => {
+        set((state) => ({
+          teamMembers: [...state.teamMembers, member]
+        }));
+      },
+
+      createOrganization: (data) => {
+        const orgId = `org_${Math.random().toString(36).substring(2, 9)}`;
+        const newOrg: Organization = {
+          id: orgId,
+          name: data.name,
+          cnpj: data.cnpj,
+          planId: data.planId,
+          status: data.status,
+          createdAt: new Date().toISOString()
+        };
+
+        const newFeatures: OrganizationFeatures = {
+          organizationId: orgId,
+          ...data.features
+        };
+
+        const newMemberId = `m_${Math.random().toString(36).substring(2, 9)}`;
+        const newMember: TeamMember = {
+          id: newMemberId,
+          organizationId: orgId,
+          name: data.ownerUser.name,
+          email: data.ownerUser.email,
+          role: data.ownerUser.role,
+          userRole: data.ownerUser.userRole,
+          status: data.ownerUser.status,
+          avatarUrl: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 100000)}?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80`,
+          lastAccess: new Date().toISOString()
+        };
+
+        const newIntegration: TenantIntegration = {
+          organizationId: orgId,
+          asaasToken: '',
+          asaasWebhook: '',
+          asaasStatus: 'not_connected',
+          clickupToken: '',
+          clickupWorkspace: '',
+          clickupStatus: 'not_connected',
+          googleKey: '',
+          googleFolder: '',
+          googleDriveStatus: 'not_connected',
+          zapsignKey: '',
+          zapsignStatus: 'not_connected',
+          whatsappToken: '',
+          whatsappStatus: 'not_connected',
+          metaAdsToken: '',
+          metaAdsStatus: 'not_connected',
+          googleAdsToken: '',
+          googleAdsStatus: 'not_connected'
+        };
+
+        set((state) => ({
+          organizations: [...state.organizations, newOrg],
+          organizationFeatures: [...(state.organizationFeatures || []), newFeatures],
+          teamMembers: [...state.teamMembers, newMember],
+          integrations: [...state.integrations, newIntegration]
+        }));
+
+        // Log history of creation
+        const operatorName = get().currentUser ? get().currentUser.name : 'Operador';
+        get().addHistoryEvent({
+          title: 'Empresa Criada',
+          description: `[Operador] Empresa criada no GaroFlow por ${operatorName}.`,
+          type: 'client_created',
+          organizationId: orgId
+        });
+
+        // Optionally create demo mock data
+        if (data.createMockData) {
+          const mockClientId = `c_mock_${Math.random().toString(36).substring(2, 9)}`;
+          const mockLeadId = `l_mock_${Math.random().toString(36).substring(2, 9)}`;
+          const mockProposalId = `prop_mock_${Math.random().toString(36).substring(2, 9)}`;
+          const mockTaskId = `t_mock_${Math.random().toString(36).substring(2, 9)}`;
+
+          const mockLead: Lead = {
+            id: mockLeadId,
+            organizationId: orgId,
+            name: 'Fernanda Souza',
+            companyName: 'Souza Alimentos',
+            email: 'fernanda@souzaalimentos.com.br',
+            phone: '(11) 98765-4321',
+            origin: 'Formulário do Site',
+            platform: 'landing_page',
+            status: 'new',
+            temperature: 'warm',
+            responsibleUser: data.ownerUser.name,
+            createdAt: new Date().toISOString(),
+            lastInteraction: new Date().toISOString(),
+            notes: 'Lead demonstrativo importado automaticamente do site.'
+          };
+
+          const mockClient: Client = {
+            id: mockClientId,
+            organizationId: orgId,
+            name: 'Thiago Lacerda',
+            companyName: 'Lacerda & Advogados',
+            cnpj: '22.333.444/0001-55',
+            phone: '(11) 97777-6666',
+            email: 'thiago@lacerdaadv.com.br',
+            responsibleUser: data.ownerUser.name,
+            commercialStatus: 'active',
+            notes: 'Cliente ativo gerado automaticamente para demonstração.',
+            createdAt: new Date().toISOString()
+          };
+
+          const mockProposal: Proposal = {
+            id: mockProposalId,
+            organizationId: orgId,
+            clientId: mockClientId,
+            clientName: mockClient.name,
+            companyName: mockClient.companyName,
+            description: 'Assessoria Mensal de Tráfego Pago & Redes Sociais',
+            items: [
+              { id: 'item_1', description: 'Gestão de Tráfego Ads', value: 2000, isMonthly: true },
+              { id: 'item_2', description: 'Produção de Conteúdo (Insta/Linkedin)', value: 1500, isMonthly: true }
+            ],
+            totalValue: 3500,
+            monthlyValue: 3500,
+            validityDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            paymentTerms: 'Boleto bancário em 5 dias úteis',
+            status: 'sent',
+            createdAt: new Date().toISOString()
+          };
+
+          const mockTask: TeamTask = {
+            id: mockTaskId,
+            organizationId: orgId,
+            title: 'Reunião de Alinhamento de Onboarding',
+            clientId: mockClientId,
+            clientName: mockClient.name,
+            responsibleUser: data.ownerUser.name,
+            dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            status: 'pending',
+            priority: 'high',
+            description: 'Apresentar equipe e alinhar acessos às contas de anúncio.',
+            createdAt: new Date().toISOString()
+          };
+
+          set((state) => ({
+            leads: [mockLead, ...state.leads],
+            clients: [mockClient, ...state.clients],
+            proposals: [mockProposal, ...state.proposals],
+            tasks: [mockTask, ...state.tasks]
+          }));
+
+          // Logs para os dados demonstrativos
+          get().addHistoryEvent({
+            clientId: mockLeadId,
+            clientName: mockLead.name,
+            title: 'Lead Recebido',
+            description: `Lead Souza Alimentos importado do formulário do site.`,
+            type: 'client_created',
+            organizationId: orgId
+          });
+
+          get().addHistoryEvent({
+            clientId: mockClientId,
+            clientName: mockClient.name,
+            title: 'Cliente Cadastrado',
+            description: `Cliente Lacerda & Advogados cadastrado no sistema.`,
+            type: 'client_created',
+            organizationId: orgId
+          });
+
+          get().addHistoryEvent({
+            clientId: mockClientId,
+            clientName: mockClient.name,
+            title: 'Proposta Enviada',
+            description: `Proposta Assessoria Mensal de Tráfego Pago & Redes Sociais enviada para Thiago Lacerda.`,
+            type: 'proposal_sent',
+            organizationId: orgId
+          });
+        }
       },
 
       updateTeamMemberRole: (id, userRole) => {
@@ -1304,8 +1596,8 @@ export const useStore = create<SystemState>()(
         const targetOrgId = lead.organizationId;
 
         // Check if client with same email or phone already exists in this tenant
-        const existingClient = get().clients.find(c => 
-          c.organizationId === targetOrgId && 
+        const existingClient = get().clients.find(c =>
+          c.organizationId === targetOrgId &&
           (c.email.toLowerCase() === lead.email.toLowerCase() || c.phone.replace(/\D/g, '') === lead.phone.replace(/\D/g, ''))
         );
 
@@ -1314,7 +1606,7 @@ export const useStore = create<SystemState>()(
           set((state) => ({
             leads: state.leads.map(l => l.id === leadId ? { ...l, status: 'converted', lastInteraction: new Date().toISOString() } : l)
           }));
-          
+
           get().addHistoryEvent({
             clientId: existingClient.id,
             clientName: existingClient.companyName,
@@ -1424,15 +1716,15 @@ export const useStore = create<SystemState>()(
         const targetOrgId = orgId || state.currentOrganizationId;
         const org = state.organizations.find(o => o.id === targetOrgId);
         if (!org) return true;
-        
+
         const planLimits: Record<PlanType, PlanLimits> = {
           starter: { clients: 3, users: 2, proposals: 5, tasks: 10, hasIntegrations: false },
           pro: { clients: 30, users: 5, proposals: 50, tasks: 99999, hasIntegrations: true },
           enterprise: { clients: 99999, users: 99999, proposals: 99999, tasks: 99999, hasIntegrations: true }
         };
-        
+
         const limits = planLimits[org.planId];
-        
+
         switch (type) {
           case 'clients': {
             const count = state.clients.filter(c => c.organizationId === targetOrgId).length;
@@ -1468,11 +1760,11 @@ export const useStore = create<SystemState>()(
           organizationId: targetOrgId,
           createdAt: new Date().toISOString()
         } as Client;
-        
+
         set((state) => ({
           clients: [newClient, ...state.clients],
         }));
-        
+
         get().addHistoryEvent({
           clientId: newClient.id,
           clientName: newClient.name,
@@ -1481,16 +1773,16 @@ export const useStore = create<SystemState>()(
           type: 'client_created',
           organizationId: targetOrgId
         });
-        
+
         return newClient;
       },
-      
+
       updateClientStatus: (id, status) => {
         set((state) => ({
           clients: state.clients.map((c) => c.id === id ? { ...c, commercialStatus: status } : c)
         }));
       },
-      
+
       addProposal: (proposalData) => {
         const targetOrgId = proposalData.organizationId || get().currentOrganizationId;
         if (!get().checkLimit('proposals', targetOrgId)) {
@@ -1504,11 +1796,11 @@ export const useStore = create<SystemState>()(
           status: 'draft',
           createdAt: new Date().toISOString()
         } as Proposal;
-        
+
         set((state) => ({
           proposals: [newProposal, ...state.proposals]
         }));
-        
+
         get().addHistoryEvent({
           clientId: newProposal.clientId,
           clientName: newProposal.clientName,
@@ -1517,15 +1809,15 @@ export const useStore = create<SystemState>()(
           type: 'proposal_created',
           organizationId: targetOrgId
         });
-        
+
         return newProposal;
       },
-      
+
       updateProposalStatus: (id, status) => {
         set((state) => ({
           proposals: state.proposals.map((p) => p.id === id ? { ...p, status } : p)
         }));
-        
+
         const proposal = get().proposals.find(p => p.id === id);
         if (proposal) {
           get().addHistoryEvent({
@@ -1538,19 +1830,19 @@ export const useStore = create<SystemState>()(
           });
         }
       },
-      
+
       acceptProposalFlow: (id) => {
         const proposal = get().proposals.find(p => p.id === id);
         if (!proposal) return;
-        
+
         // Update Proposal Status
         set((state) => ({
           proposals: state.proposals.map((p) => p.id === id ? { ...p, status: 'accepted' } : p)
         }));
-        
+
         // Update Client Status to Onboarding
         get().updateClientStatus(proposal.clientId, 'onboarding');
-        
+
         // Add History Event for Acceptance
         get().addHistoryEvent({
           clientId: proposal.clientId,
@@ -1560,7 +1852,7 @@ export const useStore = create<SystemState>()(
           type: 'proposal_accepted',
           organizationId: proposal.organizationId
         });
-        
+
         // Check if contract already exists
         const existsContract = get().contracts.some(c => c.proposalId === id);
         if (!existsContract) {
@@ -1582,11 +1874,11 @@ export const useStore = create<SystemState>()(
             version: 'v1.0',
             createdAt: new Date().toISOString()
           };
-          
+
           set((state) => ({
             contracts: [newContract, ...state.contracts]
           }));
-          
+
           get().addHistoryEvent({
             clientId: proposal.clientId,
             clientName: proposal.clientName,
@@ -1595,7 +1887,7 @@ export const useStore = create<SystemState>()(
             type: 'contract_generated',
             organizationId: proposal.organizationId
           });
-          
+
           // Check if Onboarding checklist already exists
           const existsOnboarding = get().onboardings.some(o => o.clientId === proposal.clientId);
           if (!existsOnboarding) {
@@ -1625,22 +1917,22 @@ export const useStore = create<SystemState>()(
               },
               createdAt: new Date().toISOString()
             };
-            
+
             set((state) => ({
               onboardings: [newOnboarding, ...state.onboardings]
             }));
           }
         }
       },
-      
+
       declineProposalFlow: (id) => {
         const proposal = get().proposals.find(p => p.id === id);
         if (!proposal) return;
-        
+
         set((state) => ({
           proposals: state.proposals.map((p) => p.id === id ? { ...p, status: 'declined' } : p)
         }));
-        
+
         get().addHistoryEvent({
           clientId: proposal.clientId,
           clientName: proposal.clientName,
@@ -1650,7 +1942,7 @@ export const useStore = create<SystemState>()(
           organizationId: proposal.organizationId
         });
       },
-      
+
       addContract: (contractData) => {
         const targetOrgId = contractData.organizationId || get().currentOrganizationId;
         const newContract: Contract = {
@@ -1659,11 +1951,11 @@ export const useStore = create<SystemState>()(
           organizationId: targetOrgId,
           createdAt: new Date().toISOString()
         } as Contract;
-        
+
         set((state) => ({
           contracts: [newContract, ...state.contracts]
         }));
-        
+
         get().addHistoryEvent({
           clientId: newContract.clientId,
           clientName: newContract.clientName,
@@ -1672,25 +1964,25 @@ export const useStore = create<SystemState>()(
           type: 'contract_generated',
           organizationId: targetOrgId
         });
-        
+
         return newContract;
       },
-      
+
       updateContractStatus: (id, status) => {
         set((state) => ({
           contracts: state.contracts.map((c) => c.id === id ? { ...c, status } : c)
         }));
       },
-      
+
       signContractFlow: (id) => {
         const contract = get().contracts.find(c => c.id === id);
         if (!contract) return;
-        
+
         // Update Contract status
         set((state) => ({
           contracts: state.contracts.map((c) => c.id === id ? { ...c, status: 'signed' } : c)
         }));
-        
+
         get().addHistoryEvent({
           clientId: contract.clientId,
           clientName: contract.clientName,
@@ -1699,7 +1991,7 @@ export const useStore = create<SystemState>()(
           type: 'contract_signed',
           organizationId: contract.organizationId
         });
-        
+
         // Auto-generate Charge in Asaas
         const existsCharge = get().charges.some(ch => ch.contractId === id);
         if (!existsCharge) {
@@ -1717,11 +2009,11 @@ export const useStore = create<SystemState>()(
             status: 'pending',
             createdAt: new Date().toISOString()
           };
-          
+
           set((state) => ({
             charges: [newCharge, ...state.charges]
           }));
-          
+
           get().addHistoryEvent({
             clientId: contract.clientId,
             clientName: contract.clientName,
@@ -1730,7 +2022,7 @@ export const useStore = create<SystemState>()(
             type: 'charge_generated',
             organizationId: contract.organizationId
           });
-          
+
           // Link charge url to Onboarding
           set((state) => ({
             onboardings: state.onboardings.map((o) => o.clientId === contract.clientId ? {
@@ -1740,7 +2032,7 @@ export const useStore = create<SystemState>()(
           }));
         }
       },
-      
+
       addCharge: (chargeData) => {
         const targetOrgId = chargeData.organizationId || get().currentOrganizationId;
         const newCharge: Charge = {
@@ -1749,24 +2041,24 @@ export const useStore = create<SystemState>()(
           organizationId: targetOrgId,
           createdAt: new Date().toISOString()
         } as Charge;
-        
+
         set((state) => ({
           charges: [newCharge, ...state.charges]
         }));
-        
+
         return newCharge;
       },
-      
+
       updateChargeStatus: (id, status) => {
         set((state) => ({
           charges: state.charges.map((ch) => ch.id === id ? { ...ch, status } : ch)
         }));
       },
-      
+
       confirmPaymentFlow: (id) => {
         const charge = get().charges.find(ch => ch.id === id);
         if (!charge) return;
-        
+
         // Update charge status to paid
         set((state) => ({
           charges: state.charges.map((ch) => ch.id === id ? { ...ch, status: 'paid', paidAt: new Date().toISOString() } : ch),
@@ -1774,7 +2066,7 @@ export const useStore = create<SystemState>()(
           activeSetupStep: 'payment',
           isSetupDismissed: false
         }));
-        
+
         get().addHistoryEvent({
           clientId: charge.clientId,
           clientName: charge.clientName,
@@ -1783,7 +2075,7 @@ export const useStore = create<SystemState>()(
           type: 'charge_paid',
           organizationId: charge.organizationId
         });
-        
+
         // Update Onboarding: set paymentConfirmed to completed
         set((state) => ({
           onboardings: state.onboardings.map((o) => o.clientId === charge.clientId ? {
@@ -1791,7 +2083,7 @@ export const useStore = create<SystemState>()(
             steps: { ...o.steps, paymentConfirmed: 'completed' }
           } : o)
         }));
-        
+
         // Auto trigger operational setup simulator
         // 1. Setup Google Drive
         setTimeout(() => {
@@ -1803,7 +2095,7 @@ export const useStore = create<SystemState>()(
             } : o),
             activeSetupStep: 'drive'
           }));
-          
+
           get().addHistoryEvent({
             clientId: charge.clientId,
             clientName: charge.clientName,
@@ -1813,7 +2105,7 @@ export const useStore = create<SystemState>()(
             organizationId: charge.organizationId
           });
         }, 1000);
-  
+
         // 2. Setup ClickUp
         setTimeout(() => {
           set((state) => ({
@@ -1824,7 +2116,7 @@ export const useStore = create<SystemState>()(
             } : o),
             activeSetupStep: 'clickup'
           }));
-          
+
           get().addHistoryEvent({
             clientId: charge.clientId,
             clientName: charge.clientName,
@@ -1834,7 +2126,7 @@ export const useStore = create<SystemState>()(
             organizationId: charge.organizationId
           });
         }, 2000);
-  
+
         // 3. Setup Tasks
         setTimeout(() => {
           // Generate onboarding tasks
@@ -1849,7 +2141,7 @@ export const useStore = create<SystemState>()(
             description: 'Primeira conversa oficial pós-pagamento para definição de cronograma operacional.',
             organizationId: charge.organizationId
           });
-  
+
           get().addTask({
             title: 'Planejar Calendário Editorial e Grade de Temas',
             clientId: charge.clientId,
@@ -1861,7 +2153,7 @@ export const useStore = create<SystemState>()(
             description: 'Roteirizar primeiros 6 posts com base na identidade extraída no onboarding.',
             organizationId: charge.organizationId
           });
-          
+
           set((state) => ({
             onboardings: state.onboardings.map((o) => o.clientId === charge.clientId ? {
               ...o,
@@ -1870,14 +2162,14 @@ export const useStore = create<SystemState>()(
             activeSetupStep: 'tasks'
           }));
         }, 3000);
-  
+
         // 4. Completed step
         setTimeout(() => {
           set(() => ({
             activeSetupStep: 'completed'
           }));
         }, 4000);
-  
+
         // 5. Hide Modal after completion
         setTimeout(() => {
           set(() => ({
@@ -1886,31 +2178,31 @@ export const useStore = create<SystemState>()(
           }));
         }, 5500);
       },
-      
+
       updateOnboardingStep: (clientId, stepName, status) => {
         set((state) => {
           const onboardings = state.onboardings.map((o) => {
             if (o.clientId === clientId) {
               const updatedSteps = { ...o.steps, [stepName]: status };
-              
+
               // If all steps except 'completed' are completed, auto complete
-              const allDone = 
+              const allDone =
                 updatedSteps.paymentConfirmed === 'completed' &&
                 updatedSteps.driveCreated === 'completed' &&
                 updatedSteps.clickupCreated === 'completed' &&
                 updatedSteps.tasksCreated === 'completed' &&
                 updatedSteps.onboardingMeeting === 'completed';
-                
+
               updatedSteps.completed = allDone ? 'completed' : 'pending';
-              
+
               return { ...o, steps: updatedSteps };
             }
             return o;
           });
-          
+
           return { onboardings };
         });
-        
+
         // Log if onboarding overall is completed
         const updatedOnb = get().onboardings.find(o => o.clientId === clientId);
         if (updatedOnb && updatedOnb.steps.completed === 'completed') {
@@ -1925,7 +2217,7 @@ export const useStore = create<SystemState>()(
           });
         }
       },
-      
+
       updateOnboardingLinks: (clientId, links) => {
         set((state) => ({
           onboardings: state.onboardings.map((o) => o.clientId === clientId ? {
@@ -1934,7 +2226,7 @@ export const useStore = create<SystemState>()(
           } : o)
         }));
       },
-      
+
       addPublication: (pubData) => {
         const targetOrgId = pubData.organizationId || get().currentOrganizationId;
         const newPub: Publication = {
@@ -1943,11 +2235,11 @@ export const useStore = create<SystemState>()(
           organizationId: targetOrgId,
           createdAt: new Date().toISOString()
         } as Publication;
-        
+
         set((state) => ({
           publications: [newPub, ...state.publications]
         }));
-        
+
         get().addHistoryEvent({
           clientId: newPub.clientId,
           clientName: newPub.clientName,
@@ -1956,33 +2248,33 @@ export const useStore = create<SystemState>()(
           type: 'publication_sent',
           organizationId: targetOrgId
         });
-        
+
         return newPub;
       },
-      
+
       updatePublicationStatus: (id, status, comments) => {
         set((state) => ({
-          publications: state.publications.map((pub) => 
+          publications: state.publications.map((pub) =>
             pub.id === id ? { ...pub, status, clientComments: comments || pub.clientComments } : pub
           )
         }));
-        
+
         const pub = get().publications.find(p => p.id === id);
         if (pub) {
           const title = status === 'approved' ? 'Publicação Aprovada' : 'Alteração Solicitada na Publicação';
           const type = status === 'approved' ? 'publication_approved' : 'publication_revision';
-          
+
           get().addHistoryEvent({
             clientId: pub.clientId,
             clientName: pub.clientName,
             title,
-            description: status === 'approved' 
+            description: status === 'approved'
               ? `A publicação agendada para ${pub.scheduledDate} foi aprovada sem ressalvas pelo cliente.`
               : `O cliente solicitou alterações: "${comments || ''}"`,
             type,
             organizationId: pub.organizationId
           });
-          
+
           // Auto create clickup adjustment task if revision is requested
           if (status === 'changes_requested') {
             get().addTask({
@@ -1999,7 +2291,7 @@ export const useStore = create<SystemState>()(
           }
         }
       },
-      
+
       addTask: (taskData) => {
         const targetOrgId = taskData.organizationId || get().currentOrganizationId;
         if (!get().checkLimit('tasks', targetOrgId)) {
@@ -2012,19 +2304,19 @@ export const useStore = create<SystemState>()(
           organizationId: targetOrgId,
           createdAt: new Date().toISOString()
         } as TeamTask;
-        
+
         set((state) => ({
           tasks: [newTask, ...state.tasks]
         }));
-        
+
         return newTask;
       },
-      
+
       updateTaskStatus: (id, status) => {
         set((state) => ({
           tasks: state.tasks.map((t) => t.id === id ? { ...t, status } : t)
         }));
-        
+
         const task = get().tasks.find(t => t.id === id);
         if (task && status === 'completed') {
           get().addHistoryEvent({
@@ -2037,7 +2329,7 @@ export const useStore = create<SystemState>()(
           });
         }
       },
-      
+
       addHistoryEvent: (eventData) => {
         const client = eventData.clientId ? get().clients.find(c => c.id === eventData.clientId) : null;
         const finalClientName = client ? client.companyName : eventData.clientName;
@@ -2050,16 +2342,16 @@ export const useStore = create<SystemState>()(
           id: `h_${Date.now()}`,
           createdAt: new Date().toISOString()
         } as HistoryEvent;
-        
+
         set((state) => ({
           historyEvents: [newEvent, ...state.historyEvents]
         }));
       },
-      
+
       simulateCnpjSearch: (cnpj) => {
         const cleanCnpj = cnpj.replace(/\D/g, '');
         if (!cleanCnpj || cleanCnpj.length !== 14) return null;
-        
+
         const mockDb: Record<string, ReturnType<SystemState['simulateCnpjSearch']>> = {
           '12345678000190': {
             companyName: 'Power Energy Solar e Automação Ltda',
@@ -2089,7 +2381,7 @@ export const useStore = create<SystemState>()(
             activity: '62.04-0-00 - Consultoria em tecnologia da informação'
           }
         };
-        
+
         return mockDb[cleanCnpj] || {
           companyName: `Empresa Simulada CNPJ ${cnpj}`,
           tradeName: `Nome Fantasia ${cnpj.slice(0, 5)}`,
@@ -2100,7 +2392,7 @@ export const useStore = create<SystemState>()(
           activity: '70.20-4-00 - Atividades de consultoria em gestão empresarial'
         };
       },
-      
+
       resetState: () => {
         set(() => ({
           organizations: initialOrganizations,
@@ -2117,7 +2409,100 @@ export const useStore = create<SystemState>()(
           currentUser: initialTeamMembers[0],
           integrations: initialIntegrations,
           leads: initialLeads,
+          organizationFeatures: initialFeatures,
         }));
+      },
+
+      getFeaturesByOrganization: (orgId) => {
+        const features = get().organizationFeatures || [];
+        const found = features.find(f => f.organizationId === orgId);
+        if (found) return found;
+
+        // Backfill if not found based on organization plan
+        const org = get().organizations.find(o => o.id === orgId);
+        const planId = org ? org.planId : 'starter';
+        const defaultFeatures = {
+          organizationId: orgId,
+          ...getPlanDefaultFeatures(planId)
+        };
+
+        // Save backfilled features
+        set(state => ({
+          organizationFeatures: [...(state.organizationFeatures || []), defaultFeatures]
+        }));
+        return defaultFeatures;
+      },
+
+      updateOrganizationFeature: (orgId, featureKey, enabled) => {
+        set(state => {
+          const features = state.organizationFeatures || [];
+          const index = features.findIndex(f => f.organizationId === orgId);
+
+          if (index > -1) {
+            const updated = [...features];
+            updated[index] = {
+              ...updated[index],
+              [featureKey]: enabled
+            };
+            return { organizationFeatures: updated };
+          } else {
+            const org = state.organizations.find(o => o.id === orgId);
+            const planId = org ? org.planId : 'starter';
+            const newFeatureObj = {
+              organizationId: orgId,
+              ...getPlanDefaultFeatures(planId),
+              [featureKey]: enabled
+            };
+            return { organizationFeatures: [...features, newFeatureObj] };
+          }
+        });
+      },
+
+      updateOrganizationFeatures: (orgId, data) => {
+        set(state => {
+          const features = state.organizationFeatures || [];
+          const index = features.findIndex(f => f.organizationId === orgId);
+
+          if (index > -1) {
+            const updated = [...features];
+            updated[index] = {
+              ...updated[index],
+              ...data
+            };
+            return { organizationFeatures: updated };
+          } else {
+            const org = state.organizations.find(o => o.id === orgId);
+            const planId = org ? org.planId : 'starter';
+            const newFeatureObj = {
+              organizationId: orgId,
+              ...getPlanDefaultFeatures(planId),
+              ...data
+            };
+            return { organizationFeatures: [...features, newFeatureObj] };
+          }
+        });
+      },
+
+      resetFeaturesToPlanDefaults: (orgId) => {
+        set(state => {
+          const org = state.organizations.find(o => o.id === orgId);
+          const planId = org ? org.planId : 'starter';
+          const defaultFeatures = {
+            organizationId: orgId,
+            ...getPlanDefaultFeatures(planId)
+          };
+
+          const features = state.organizationFeatures || [];
+          const index = features.findIndex(f => f.organizationId === orgId);
+
+          if (index > -1) {
+            const updated = [...features];
+            updated[index] = defaultFeatures;
+            return { organizationFeatures: updated };
+          } else {
+            return { organizationFeatures: [...features, defaultFeatures] };
+          }
+        });
       }
     }),
     {
@@ -2126,7 +2511,7 @@ export const useStore = create<SystemState>()(
         merge: (persistedState: unknown, currentState: SystemState): SystemState => {
           if (!persistedState) return currentState;
           const state = persistedState as Partial<SystemState>;
-          
+
           const backfill = <T extends { id: string; organizationId?: string }>(list: T[] | undefined, initialList: T[]): T[] => {
             if (!list) return initialList;
             const migratedList = list.map(item => {
@@ -2157,6 +2542,21 @@ export const useStore = create<SystemState>()(
             return [...migratedList, ...missingItems];
           };
 
+          const backfillFeatures = (list: OrganizationFeatures[] | undefined, initialList: OrganizationFeatures[]): OrganizationFeatures[] => {
+            if (!list) return initialList;
+            const migratedList = list.map(item => {
+              const initialItem = initialList.find(i => i.organizationId === item.organizationId);
+              return {
+                ...initialItem,
+                ...item,
+                organizationId: item.organizationId || initialItem?.organizationId || 'org_hub_power'
+              };
+            });
+            const migratedOrgs = new Set(migratedList.map(item => item.organizationId));
+            const missingItems = initialList.filter(item => !migratedOrgs.has(item.organizationId));
+            return [...migratedList, ...missingItems];
+          };
+
           return {
             ...currentState,
             ...state,
@@ -2171,11 +2571,12 @@ export const useStore = create<SystemState>()(
             tasks: backfill(state.tasks, currentState.tasks),
             historyEvents: backfill(state.historyEvents, currentState.historyEvents),
             teamMembers: backfill(state.teamMembers, currentState.teamMembers),
-            currentUser: state.currentUser 
-              ? { ...currentState.currentUser, ...state.currentUser } 
+            currentUser: state.currentUser
+              ? { ...currentState.currentUser, ...state.currentUser }
               : currentState.currentUser,
             integrations: backfillIntegrations(state.integrations, currentState.integrations),
             leads: backfill(state.leads, currentState.leads),
+            organizationFeatures: backfillFeatures(state.organizationFeatures, currentState.organizationFeatures),
           };
         }
     }
@@ -2187,10 +2588,15 @@ export function useTenantStore() {
   const store = useStore();
   const currentOrgId = store.currentOrganizationId;
   const currentOrg = store.organizations.find(o => o.id === currentOrgId) || store.organizations[0];
-  
+  const currentFeatures = store.organizationFeatures?.find(f => f.organizationId === currentOrgId) || {
+    organizationId: currentOrgId,
+    ...getPlanDefaultFeatures(currentOrg?.planId || 'starter')
+  };
+
   return {
     ...store,
     currentOrganization: currentOrg,
+    currentFeatures,
     currentIntegration: store.integrations.find(i => i.organizationId === currentOrgId) || store.integrations[0],
     clients: store.clients.filter(c => c.organizationId === currentOrgId),
     proposals: store.proposals.filter(p => p.organizationId === currentOrgId),

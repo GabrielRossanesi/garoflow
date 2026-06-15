@@ -24,7 +24,8 @@ export default function ConfiguracoesPage() {
     teamMembers,
     currentIntegration,
     updateIntegration,
-    testIntegrationConnection
+    testIntegrationConnection,
+    currentFeatures
   } = useTenantStore();
 
   // Local form states initialized directly from the tenant store integration configurations.
@@ -43,6 +44,9 @@ export default function ConfiguracoesPage() {
   // Saving and testing connection feedback states
   const [saveStates, setSaveStates] = useState<Record<string, boolean>>({});
   const [testStates, setTestStates] = useState<Record<string, 'idle' | 'testing' | 'success'>>({});
+
+  const showIntegrations = currentFeatures ? currentFeatures.integrations !== false : true;
+  const [activeTab, setActiveTab] = useState(showIntegrations ? 'integracoes' : 'assinatura');
 
   const handleSave = (service: string) => {
     const targetOrgId = currentOrganization?.id || 'org_hub_power'; // Capture organization ID explicitly to prevent cross-tenant leak
@@ -150,9 +154,18 @@ export default function ConfiguracoesPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="integracoes">
+      {!showIntegrations && (
+        <div className="p-3 bg-warning/10 border border-warning/20 text-warning text-xs font-semibold rounded-lg flex items-center gap-2">
+          <Key className="h-4 w-4 shrink-0" />
+          <span>Integrações não estão habilitadas para esta organização.</span>
+        </div>
+      )}
+
+      <Tabs key={`${currentOrganization?.id}-${showIntegrations}`} value={activeTab} onValueChange={(v) => setActiveTab(v as 'integracoes' | 'assinatura' | 'sistema')}>
         <TabsList>
-          <TabsTrigger value="integracoes"><Key className="h-3.5 w-3.5 mr-1.5" /> Integrações &amp; APIs</TabsTrigger>
+          {showIntegrations && (
+            <TabsTrigger value="integracoes"><Key className="h-3.5 w-3.5 mr-1.5" /> Integrações &amp; APIs</TabsTrigger>
+          )}
           <TabsTrigger value="assinatura"><CreditCard className="h-3.5 w-3.5 mr-1.5" /> Plano &amp; Faturamento</TabsTrigger>
           <TabsTrigger value="sistema"><Database className="h-3.5 w-3.5 mr-1.5" /> Manutenção &amp; Reset</TabsTrigger>
         </TabsList>

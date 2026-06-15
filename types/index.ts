@@ -6,7 +6,7 @@ export interface Organization {
   name: string;
   cnpj: string;
   planId: PlanType;
-  status: 'active' | 'suspended' | 'trial';
+  status: 'active' | 'suspended' | 'trial' | 'pending';
   logoUrl?: string;
   createdAt: string;
 }
@@ -61,7 +61,7 @@ export interface Proposal {
   createdAt: string;
 }
 
-export type ContractStatus = 
+export type ContractStatus =
   | 'not_generated'
   | 'drafting'
   | 'generated'
@@ -90,7 +90,7 @@ export interface Contract {
   createdAt: string;
 }
 
-export type ChargeStatus = 
+export type ChargeStatus =
   | 'pending_generation'
   | 'created'
   | 'sent'
@@ -144,7 +144,7 @@ export interface Onboarding {
   createdAt: string;
 }
 
-export type PublicationStatus = 
+export type PublicationStatus =
   | 'draft'
   | 'ready_for_approval'
   | 'sent_to_client'
@@ -196,7 +196,7 @@ export interface HistoryEvent {
   clientName?: string;
   title: string;
   description: string;
-  type: 
+  type:
     | 'client_created'
     | 'proposal_created'
     | 'proposal_sent'
@@ -234,34 +234,34 @@ export type IntegrationStatus = 'connected' | 'not_connected' | 'sandbox' | 'err
 
 export interface TenantIntegration {
   organizationId: string;
-  
+
   // Asaas (Financeiro)
   asaasToken: string;
   asaasWebhook: string;
   asaasStatus: IntegrationStatus;
-  
+
   // ClickUp (Operacional)
   clickupToken: string;
   clickupWorkspace: string;
   clickupStatus: IntegrationStatus;
-  
+
   // Google Drive & Docs (Entrega)
   googleKey: string;
   googleFolder: string;
   googleDriveStatus: IntegrationStatus;
-  
+
   // ZapSign (Contratos)
   zapsignKey: string;
   zapsignStatus: IntegrationStatus;
-  
+
   // WhatsApp (Atendimento)
   whatsappToken: string;
   whatsappStatus: IntegrationStatus;
-  
+
   // Meta Ads (Leads)
   metaAdsToken: string;
   metaAdsStatus: IntegrationStatus;
-  
+
   // Google Ads (Leads)
   googleAdsToken: string;
   googleAdsStatus: IntegrationStatus;
@@ -293,3 +293,18 @@ export interface Lead {
   notes?: string;
 }
 
+export interface OrganizationFeatures {
+  organizationId: string;
+  leads: boolean;
+  clients: boolean;
+  proposals: boolean;
+  contracts: boolean;
+  charges: boolean;
+  onboarding: boolean;
+  publications: boolean;
+  tasks: boolean;
+  history: boolean;
+  integrations: boolean;
+  team: boolean;
+  publicProposal: boolean;
+}

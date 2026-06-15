@@ -15,7 +15,7 @@ export default function PublicProposalPage() {
   const params = useParams();
   const mounted = useMounted();
   const proposalId = params.id as string;
-  const { proposals, organizations, acceptProposalFlow, declineProposalFlow } = useStore();
+  const { proposals, organizations, organizationFeatures, acceptProposalFlow, declineProposalFlow } = useStore();
 
   const [hasAgreed, setHasAgreed] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
@@ -37,6 +37,21 @@ export default function PublicProposalPage() {
         <ShieldAlert className="h-16 w-16 text-danger mb-4" />
         <h1 className="text-xl font-bold text-foreground">Proposta não encontrada</h1>
         <p className="text-muted-foreground mt-1.5 text-sm">O link acessado é inválido, a proposta foi excluída ou a organização correspondente não está ativa.</p>
+      </div>
+    );
+  }
+
+  const features = organizationFeatures?.find(f => f.organizationId === organization.id);
+  const isPublicProposalEnabled = features ? features.publicProposal !== false : true;
+
+  if (!isPublicProposalEnabled) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center px-4 bg-background text-center max-w-md mx-auto">
+        <ShieldAlert className="h-16 w-16 text-warning mb-4" />
+        <h1 className="text-xl font-bold text-foreground">Proposta indisponível</h1>
+        <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
+          A página pública de proposta não está habilitada para esta organização no momento.
+        </p>
       </div>
     );
   }
