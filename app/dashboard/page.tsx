@@ -119,7 +119,7 @@ export default function DashboardPage() {
           <AlertCircle className="h-7 w-7 text-muted-foreground animate-pulse mb-1" />
           <p className="text-sm font-semibold text-foreground">Poucos módulos estão habilitados para esta organização.</p>
           <p className="text-xs text-muted-foreground">
-            O operador VN Hub pode habilitar ou desabilitar módulos a partir do menu &quot;Empresas&quot;.
+            O operador NV Hub pode habilitar ou desabilitar módulos a partir do menu &quot;Empresas&quot;.
           </p>
         </div>
       )}

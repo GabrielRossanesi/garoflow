@@ -1,4 +1,4 @@
-# VN Hub
+# NV Hub
 
 Plataforma SaaS de Gestão Comercial e Operacional integrada para agências, consultorias e empresas de serviços recorrentes.
 

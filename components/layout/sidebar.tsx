@@ -60,7 +60,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const currentOrg = (organizations || []).find(o => o.id === currentOrganizationId) || organizations?.[0];
   const orgInitials = currentOrg?.name
     ? currentOrg.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-    : 'VN';
+    : 'NV';
 
   return (
     <>
@@ -114,7 +114,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </Link>
           {isSidebarCollapsed && (
             <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-card text-card-foreground text-[11px] font-semibold rounded-lg border border-border shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 ease-out transform scale-90 -translate-x-1 group-hover:scale-100 group-hover:translate-x-0 z-50">
-              VN Hub (SaaS)
+              NV Hub (SaaS)
             </div>
           )}
           {!isSidebarCollapsed && (
@@ -239,7 +239,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="pt-4 mt-4 border-t border-border/40">
             {!isSidebarCollapsed ? (
               <div className="px-3 mb-2 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
-                Operador VN Hub
+                Operador NV Hub
               </div>
             ) : (
               <div className="h-px bg-border/40 my-2" />

@@ -292,7 +292,7 @@ export default function EmpresasAdminPage() {
       {/* Top operational alert */}
       <div className="p-3.5 bg-primary/10 border border-primary/20 text-primary text-xs font-semibold rounded-lg flex items-center gap-2.5 shadow-sm">
         <ShieldAlert className="h-4.5 w-4.5 shrink-0" />
-        <span>Área administrativa da plataforma — visão do operador VN Hub.</span>
+        <span>Área administrativa da plataforma — visão do operador NV Hub.</span>
       </div>
 
       {/* Page Header */}
@@ -382,7 +382,7 @@ export default function EmpresasAdminPage() {
       <Card>
         <CardHeader className="px-6 py-4 border-b border-border/40">
           <CardTitle className="text-base font-bold">Empresas Assinantes</CardTitle>
-          <CardDescription>Lista completa de tenants cadastrados no simulador da VN Hub.</CardDescription>
+          <CardDescription>Lista completa de tenants cadastrados no simulador da NV Hub.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -488,7 +488,7 @@ export default function EmpresasAdminPage() {
           isOpen={!!selectedOrgId}
           onClose={() => setSelectedOrgId(null)}
           title={`Administração: ${selectedOrg.name}`}
-          description="Painel do operador VN Hub para gerenciamento de limites, status e membros do tenant."
+          description="Painel do operador NV Hub para gerenciamento de limites, status e membros do tenant."
           size="xl"
         >
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1152,7 +1152,7 @@ export default function EmpresasAdminPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Cadastrar Nova Empresa"
-        description="Painel do operador para inicializar um novo inquilino na plataforma VN Hub."
+        description="Painel do operador para inicializar um novo inquilino na plataforma NV Hub."
         size="lg"
       >
         <div className="space-y-6">

@@ -111,7 +111,7 @@ export default function DashboardLayout({
                     Funcionalidade não disponível no seu plano
                   </h1>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-                    Este módulo não está habilitado para a organização atual. Fale com o operador VN Hub para liberar o acesso.
+                    Este módulo não está habilitado para a organização atual. Fale com o operador NV Hub para liberar o acesso.
                   </p>
                   <Link href="/dashboard" passHref legacyBehavior>
                     <Button className="w-full sm:w-auto font-semibold">

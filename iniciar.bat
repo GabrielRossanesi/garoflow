@@ -1,7 +1,7 @@
 @echo off
-title VN Hub - Servidor de Desenvolvimento
+title NV Hub - Servidor de Desenvolvimento
 echo =================================================================
-echo             INICIANDO A PLATAFORMA VN HUB
+echo             INICIANDO A PLATAFORMA NV HUB
 echo =================================================================
 echo.
 echo [1/2] Iniciando o navegador em http://localhost:3000...
