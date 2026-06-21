@@ -72,7 +72,7 @@ export default function PublicacoesPage() {
       caption: caption,
       scheduledDate: scheduledDate,
       status: 'pending_approval',
-      approvalLink: `https://garoflow.com.br/aprovar/mock_${Date.now()}`,
+      approvalLink: `https://vnhub.com.br/aprovar/mock_${Date.now()}`,
       responsibleUser: responsavel
     });
 

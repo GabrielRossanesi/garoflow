@@ -1,7 +1,7 @@
 @echo off
-title GaroFlow - Servidor de Desenvolvimento
+title VN Hub - Servidor de Desenvolvimento
 echo =================================================================
-echo             INICIANDO A PLATAFORMA GAROFLOW
+echo             INICIANDO A PLATAFORMA VN HUB
 echo =================================================================
 echo.
 echo [1/2] Iniciando o navegador em http://localhost:3000...

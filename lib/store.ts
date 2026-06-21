@@ -946,7 +946,7 @@ const initialPublications: Publication[] = [
     caption: '⚡ A transição para energia limpa não é mais o futuro, é o presente. Empresas que adotam fontes renováveis reduzem custos operacionais em até 30% e geram um impacto ambiental positivo imediato. Fale conosco para entender como podemos ajudar o seu negócio a decolar sustentavelmente! #EnergiaSolar #Sustentabilidade #Economia',
     scheduledDate: '2026-06-15',
     status: 'approved',
-    approvalLink: 'https://garoflow.com.br/aprovar/pub1',
+    approvalLink: 'https://vnhub.com.br/aprovar/pub1',
     responsibleUser: 'João Santos',
     createdAt: '2026-06-08T14:00:00Z'
   },
@@ -960,7 +960,7 @@ const initialPublications: Publication[] = [
     caption: '☕ O aroma de um café especial moído na hora tem o poder de transformar qualquer dia produtivo. No Ponto de Encontro, selecionamos grãos de pequenos produtores nacionais para garantir a xícara perfeita para suas reuniões ou pausas criativas. Venha trabalhar e se deliciar! #CafeEspecial #CoffeeLover #EspacoCoworking',
     scheduledDate: '2026-06-18',
     status: 'pending_approval',
-    approvalLink: 'https://garoflow.com.br/aprovar/pub2',
+    approvalLink: 'https://vnhub.com.br/aprovar/pub2',
     responsibleUser: 'João Santos',
     createdAt: '2026-06-10T11:00:00Z'
   },
@@ -974,7 +974,7 @@ const initialPublications: Publication[] = [
     caption: '⚖️ Como a nova reforma tributária afeta o planejamento fiscal da sua empresa? Nosso time de especialistas preparou um guia exclusivo simplificando as principais mudanças para o seu negócio. Acesse nosso blog e leia na íntegra! #DireitoTributario #PlanejamentoFiscal #ReformaTributaria',
     scheduledDate: '2026-06-25',
     status: 'approved',
-    approvalLink: 'https://garoflow.com.br/aprovar/pub_m1',
+    approvalLink: 'https://vnhub.com.br/aprovar/pub_m1',
     responsibleUser: 'Carlos Morales',
     createdAt: '2026-06-12T10:00:00Z'
   }
@@ -1289,7 +1289,7 @@ export const useStore = create<SystemState>()(
         const operatorName = get().currentUser ? get().currentUser.name : 'Operador';
         get().addHistoryEvent({
           title: 'Empresa Criada',
-          description: `[Operador] Empresa criada no GaroFlow por ${operatorName}.`,
+          description: `[Operador] Empresa criada no VN Hub por ${operatorName}.`,
           type: 'client_created',
           organizationId: orgId
         });

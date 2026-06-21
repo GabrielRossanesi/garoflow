@@ -77,12 +77,12 @@ export default function LandingPage() {
 
   const faqItems = [
     { 
-      q: 'A GaroFlow já possui integrações reais?', 
+      q: 'A VN Hub já possui integrações reais?', 
       a: 'Sim, a plataforma possui conectores desenhados para as APIs oficiais do Asaas (pagamentos), ZapSign (assinaturas), Google Drive e ClickUp. A ativação destas integrações em ambiente de produção pode ser configurada conforme o plano selecionado, viabilidade técnica e etapa de implantação.' 
     },
     { 
-      q: 'Posso usar a GaroFlow sem integrações no início?', 
-      a: 'Com certeza. A GaroFlow conta com um Modo Simulador (Mock) integrado que permite que você utilize todos os recursos, emita faturamentos fictícios e crie projetos de onboarding simulados para testar ou treinar a equipe antes de plugar as contas de produção.' 
+      q: 'Posso usar a VN Hub sem integrações no início?', 
+      a: 'Com certeza. A VN Hub conta com um Modo Simulador (Mock) integrado que permite que você utilize todos os recursos, emita faturamentos fictícios e crie projetos de onboarding simulados para testar ou treinar a equipe antes de plugar as contas de produção.' 
     },
     { 
       q: 'Como funciona a implantação e o setup inicial?', 
@@ -94,22 +94,22 @@ export default function LandingPage() {
     },
     { 
       q: 'Existe algum período de fidelidade contratual?', 
-      a: 'Não. Os planos recorrentes da GaroFlow são mensais e sem carência contratual. Você pode fazer o upgrade, downgrade ou cancelamento do serviço quando quiser, sem taxas de saída ou multas.' 
+      a: 'Não. Os planos recorrentes da VN Hub são mensais e sem carência contratual. Você pode fazer o upgrade, downgrade ou cancelamento do serviço quando quiser, sem taxas de saída ou multas.' 
     },
     { 
       q: 'Como os dados das empresas ficam separados?', 
-      a: 'A GaroFlow utiliza uma arquitetura multi-tenant lógica estrita. Cada organização assinante possui uma chave exclusiva de isolamento no banco de dados. Isso significa que seus clientes, propostas, contratos, histórico e membros da equipe nunca cruzam ou vazam para outros assinantes.' 
+      a: 'A VN Hub utiliza uma arquitetura multi-tenant lógica estrita. Cada organização assinante possui uma chave exclusiva de isolamento no banco de dados. Isso significa que seus clientes, propostas, contratos, histórico e membros da equipe nunca cruzam ou vazam para outros assinantes.' 
     },
     { 
       q: 'A página pública de proposta exige login do meu cliente?', 
       a: 'Não. As propostas geradas geram links públicos exclusivos criptografados. Seu cliente final pode visualizar, concordar com os termos e assinar sem precisar criar uma conta ou lembrar de senhas, acelerando a conversão.' 
     },
     { 
-      q: 'Quem deve usar a GaroFlow?', 
-      a: 'A GaroFlow é ideal para agências de marketing, gestores de tráfego, social medias, consultorias, empresas B2B e operações de venda recorrente. É especialmente útil para equipes que recebem leads de campanhas (Meta Ads, Google Ads), precisam centralizá-los e acompanhar toda a jornada de conversão de contatos em propostas comerciais e onboarding de entrega.' 
+      q: 'Quem deve usar a VN Hub?', 
+      a: 'A VN Hub é ideal para agências de marketing, gestores de tráfego, social medias, consultorias, empresas B2B e operações de venda recorrente. É especialmente útil para equipes que recebem leads de campanhas (Meta Ads, Google Ads), precisam centralizá-los e acompanhar toda a jornada de conversão de contatos em propostas comerciais e onboarding de entrega.' 
     },
     { 
-      q: 'A GaroFlow também organiza leads de tráfego pago?', 
+      q: 'A VN Hub também organiza leads de tráfego pago?', 
       a: 'Sim. A Central de Leads permite receber contatos de campanhas patrocinadas (Meta Ads e Google Ads), formulários do site e WhatsApp, organizando-os em um funil Kanban para que você visualize e atenda cada oportunidade sem dispersão.' 
     },
     { 
@@ -125,11 +125,11 @@ export default function LandingPage() {
       a: 'Com certeza. Com apenas um clique, o lead qualificado é convertido em cliente na mesma organização (copiando dados como telefone, e-mail e empresa com detecção de duplicidades) e uma proposta rascunho de serviços pode ser gerada instantaneamente no funil.' 
     },
     { 
-      q: 'A GaroFlow substitui um CRM?', 
-      a: 'A GaroFlow atua como um hub comercial e operacional. Ela substitui as etapas básicas de funil de CRM focado em prospecção de serviços recorrentes e estende esse fluxo de ponta a ponta, conectando a venda aceita diretamente com o onboarding (Drive, ClickUp) e o faturamento.' 
+      q: 'A VN Hub substitui um CRM?', 
+      a: 'A VN Hub atua como um hub comercial e operacional. Ela substitui as etapas básicas de funil de CRM focado em prospecção de serviços recorrentes e estende esse fluxo de ponta a ponta, conectando a venda aceita diretamente com o onboarding (Drive, ClickUp) e o faturamento.' 
     },
     { 
-      q: 'Gestores de tráfego podem usar a GaroFlow com seus clientes?', 
+      q: 'Gestores de tráfego podem usar a VN Hub com seus clientes?', 
       a: 'Sim. Gestores de tráfego e agências de marketing utilizam a plataforma para apresentar a seus clientes o caminho operacional do lead desde a campanha de origem até virar faturamento real, trazendo máxima transparência e prova de ROI.' 
     },
     { 
@@ -254,8 +254,8 @@ export default function LandingPage() {
                   {/* Mock Sidebar */}
                   <div className="w-24 border-r border-border/40 pr-3 flex flex-col gap-2.5 select-none shrink-0 h-full">
                     <div className="flex items-center gap-1 mb-1">
-                      <span className="h-5 w-5 bg-primary rounded flex items-center justify-center text-primary-foreground text-[10px] font-bold">G</span>
-                      <span className="text-[9px] font-bold text-foreground">GaroFlow</span>
+                      <span className="h-5 w-5 bg-primary rounded flex items-center justify-center text-primary-foreground text-[10px] font-bold">VN</span>
+                      <span className="text-[9px] font-bold text-foreground">VN Hub</span>
                     </div>
                     {['Dashboard', 'Leads', 'Clientes', 'Propostas', 'Contratos', 'Cobranças', 'Tarefas'].map((item, idx) => (
                       <div key={item} className={`h-4.5 rounded px-1.5 flex items-center gap-1.5 ${idx === 0 ? 'bg-primary/15 text-primary' : 'text-muted-foreground'}`}>
@@ -894,7 +894,7 @@ export default function LandingPage() {
               Perguntas Frequentes
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Tudo o que você precisa saber sobre o funcionamento comercial, financeiro e técnico da GaroFlow.
+              Tudo o que você precisa saber sobre o funcionamento comercial, financeiro e técnico da VN Hub.
             </p>
           </div>
 
@@ -936,7 +936,7 @@ export default function LandingPage() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent opacity-60" />
             <div className="relative space-y-6 max-w-2xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                Quer ver a GaroFlow funcionando na prática?
+                Quer ver a VN Hub funcionando na prática?
               </h2>
               <p className="text-sm sm:text-base text-primary-foreground/85 leading-relaxed">
                 Agende uma conversa com nossos especialistas. Demonstramos em tempo real a automação do fluxo comercial, os limites de planos e a área operacional do ClickUp e Asaas.
@@ -963,9 +963,9 @@ export default function LandingPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="h-7 w-7 rounded bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-                G
+                VN
               </div>
-              <span className="font-bold text-sm text-foreground">GaroFlow</span>
+              <span className="font-bold text-sm text-foreground">VN Hub</span>
             </div>
             <p className="leading-relaxed text-[11px]">
               O fluxo comercial e operacional integrado e sem fricção para agências e consultorias recorrentes.
@@ -1007,7 +1007,7 @@ export default function LandingPage() {
         </div>
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 border-t border-border/40 mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
-          <p>© {new Date().getFullYear()} GaroFlow. Todos os direitos reservados. Plataforma SaaS de Gestão Operacional.</p>
+          <p>© {new Date().getFullYear()} VN Hub. Todos os direitos reservados. Plataforma SaaS de Gestão Operacional.</p>
           <div className="flex gap-4">
             <span className="hover:underline cursor-pointer">Termos de Uso</span>
             <span className="hover:underline cursor-pointer">Privacidade</span>
@@ -1023,7 +1023,7 @@ export default function LandingPage() {
             setIsDemoModalOpen(false);
             setIsDemoSubmitted(false);
           }}
-          title="Agendar Demonstração GaroFlow"
+          title="Agendar Demonstração VN Hub"
           description={selectedPlanContext ? `Solicitação de demonstração personalizada voltada para o Plano ${selectedPlanContext}.` : 'Preencha o formulário abaixo e um especialista entrará em contato comercial dentro de 24 horas.'}
           size="md"
         >
