@@ -14,6 +14,7 @@ import ThemeToggle from '../components/ui/theme-toggle';
 import Button from '../components/ui/button';
 import Modal from '../components/ui/modal';
 import { PLATFORM_NAME, PLATFORM_DOMAIN } from '../lib/config';
+import { LogoIcon, LogoHorizontal } from '../components/ui/logo';
 
 export default function LandingPage() {
   const mounted = useMounted();
@@ -171,12 +172,9 @@ export default function LandingPage() {
       {/* Header / Navbar */}
       <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md transition-all">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-md">
-              <Activity className="h-5 w-5 animate-pulse" />
-            </div>
-            <span className="font-bold text-lg leading-tight tracking-tight">{PLATFORM_NAME}</span>
-          </div>
+          <Link href="/" className="flex items-center">
+            <LogoHorizontal size="md" />
+          </Link>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-muted-foreground">
@@ -233,8 +231,8 @@ export default function LandingPage() {
 
             {/* Right Column: Premium CSS Dashboard Mockup */}
             <div className="lg:col-span-7 relative max-w-xl lg:max-w-none mx-auto w-full">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-indigo-500/20 rounded-2xl blur-2xl opacity-40 -rotate-1 pointer-events-none" />
-              <div className="relative border border-border/80 bg-card rounded-2xl shadow-2xl overflow-hidden aspect-[16/10] transition-all hover:border-primary/40 group">
+              <div className="absolute inset-0 bg-gradient-to-tr from-primary/15 to-accent-cool/15 rounded-2xl blur-2xl opacity-30 -rotate-1 pointer-events-none" />
+              <div className="relative border border-border/30 bg-card rounded-2xl shadow-[0_24px_60px_-15px_rgba(0,0,0,0.22)] dark:shadow-[0_24px_60px_-15px_rgba(0,0,0,0.82)] overflow-hidden aspect-[16/10] transition-all duration-300 hover:border-primary/45 group">
                 
                 {/* Mock Browser Header */}
                 <div className="h-9 border-b border-border/40 bg-muted/40 flex items-center px-4 justify-between select-none">
@@ -252,17 +250,34 @@ export default function LandingPage() {
                 {/* Mock Dashboard Surface */}
                 <div className="p-4 flex gap-4 h-[calc(100%-36px)] font-sans">
                   {/* Mock Sidebar */}
-                  <div className="w-24 border-r border-border/40 pr-3 flex flex-col gap-2.5 select-none shrink-0 h-full">
-                    <div className="flex items-center gap-1 mb-1">
-                      <span className="h-5 w-5 bg-primary rounded flex items-center justify-center text-primary-foreground text-[10px] font-bold">NV</span>
-                      <span className="text-[9px] font-bold text-foreground">NV Hub</span>
-                    </div>
-                    {['Dashboard', 'Leads', 'Clientes', 'Propostas', 'Contratos', 'Cobranças', 'Tarefas'].map((item, idx) => (
-                      <div key={item} className={`h-4.5 rounded px-1.5 flex items-center gap-1.5 ${idx === 0 ? 'bg-primary/15 text-primary' : 'text-muted-foreground'}`}>
-                        <div className="h-1.5 w-1.5 rounded-full bg-current" />
-                        <span className="text-[8px] font-bold uppercase tracking-wider">{item}</span>
+                  <div className="w-24 border-r border-border/20 pr-3 flex flex-col gap-2 select-none shrink-0 h-full">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <LogoIcon size="sm" className="h-4.5 w-4.5" />
+                      <div className="flex flex-col">
+                        <span className="text-[7.5px] font-black text-foreground leading-none">NV<span className="text-primary font-bold">Hub</span></span>
+                        <span className="text-[5px] text-muted-foreground font-mono font-bold uppercase tracking-wide leading-none mt-0.5">Revenue &amp; Ops</span>
                       </div>
-                    ))}
+                    </div>
+                    <div className="space-y-2.5 flex-1 overflow-hidden">
+                      <div>
+                        <div className="text-[5px] font-black text-muted-foreground/60 uppercase tracking-widest mb-0.5 scale-90 origin-left">Comercial</div>
+                        {['Dashboard', 'Leads', 'Clientes'].map((item, idx) => (
+                          <div key={item} className={`h-4.5 rounded px-1 flex items-center gap-1.5 ${idx === 0 ? 'bg-primary/10 text-primary border-l-2 border-primary rounded-l-none pl-0.5' : 'text-muted-foreground/80'}`}>
+                            <div className="h-1 w-1 rounded-full bg-current" />
+                            <span className="text-[6.5px] font-bold uppercase tracking-wider">{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <div className="text-[5px] font-black text-muted-foreground/60 uppercase tracking-widest mb-0.5 scale-90 origin-left">Operação</div>
+                        {['Onboarding', 'Tarefas'].map((item) => (
+                          <div key={item} className="h-4.5 rounded px-1 flex items-center gap-1.5 text-muted-foreground/80">
+                            <div className="h-1 w-1 rounded-full bg-current" />
+                            <span className="text-[6.5px] font-bold uppercase tracking-wider">{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Mock App Core */}
@@ -286,7 +301,7 @@ export default function LandingPage() {
                     {/* Mock Metrics grid */}
                     <div className="grid grid-cols-3 gap-2">
                       {['Leads Novos', 'Clientes Ativos', 'Receita Estimada'].map((stat, i) => (
-                        <div key={stat} className="p-2 border border-border/30 rounded-lg bg-muted/20 flex flex-col gap-0.5">
+                        <div key={stat} className="p-2 border border-border/15 rounded-lg bg-card/60 backdrop-blur-md flex flex-col gap-0.5 shadow-sm">
                           <span className="text-[7px] text-muted-foreground font-medium">{stat}</span>
                           <span className="text-xs font-bold text-foreground">
                             {i === 0 ? '18' : i === 1 ? '14' : 'R$ 24.950'}
@@ -296,7 +311,7 @@ export default function LandingPage() {
                     </div>
 
                     {/* Mock Activity Chart Area */}
-                    <div className="flex-1 border border-border/20 rounded-lg bg-muted/10 p-2 flex flex-col gap-2 relative">
+                    <div className="flex-1 border border-border/15 rounded-lg bg-card/30 backdrop-blur-md p-2 flex flex-col gap-2 relative shadow-sm">
                       <span className="text-[8px] font-bold text-foreground">Fluxo de Funil Recorrente (Simulado)</span>
                       
                       {/* Flow mockup visual lines */}
@@ -961,12 +976,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Col 1: Brand details */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-                NV
-              </div>
-              <span className="font-bold text-sm text-foreground">NV Hub</span>
-            </div>
+            <LogoHorizontal size="sm" />
             <p className="leading-relaxed text-[11px]">
               O fluxo comercial e operacional integrado e sem fricção para agências e consultorias recorrentes.
             </p>

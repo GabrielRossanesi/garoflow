@@ -8,8 +8,8 @@ export function Badge({ className = '', variant = 'default', children, ...props 
   const baseStyles = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold select-none border transition-colors';
   
   const variants = {
-    default: 'bg-primary/10 text-primary border-primary/20',
-    muted: 'bg-slate-100/80 text-slate-800 border-slate-300/80 dark:bg-slate-800/80 dark:text-slate-200 dark:border-slate-700',
+    default: 'bg-primary/10 text-primary border-primary/25',
+    muted: 'bg-secondary/50 text-muted-foreground border-border/40',
     success: 'bg-success/10 text-success border-success/20',
     warning: 'bg-warning/10 text-warning border-warning/20',
     danger: 'bg-danger/10 text-danger border-danger/20',

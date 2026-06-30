@@ -7,8 +7,10 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Card({ className = '', hoverable, children, ...props }: CardProps) {
   return (
     <div
-      className={`rounded-xl border border-border/75 bg-card text-card-foreground shadow-sm transition-all duration-200 ${
-        hoverable ? 'hover:shadow-md hover:border-muted-foreground/35 cursor-pointer' : ''
+      className={`rounded-xl border border-border/40 bg-card text-card-foreground shadow-sm transition-all duration-300 ${
+        hoverable
+          ? 'hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.6)] hover:-translate-y-0.5 hover:border-primary/45 cursor-pointer'
+          : ''
       } ${className}`}
       {...props}
     >
@@ -23,18 +25,22 @@ export function CardHeader({ className = '', children, ...props }: React.HTMLAtt
 
 export function CardTitle({ className = '', children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={`text-lg font-semibold leading-none tracking-tight ${className}`} {...props}>
+    <h3 className={`text-base font-bold leading-none tracking-tight text-foreground/90 ${className}`} {...props}>
       {children}
     </h3>
   );
 }
 
 export function CardDescription({ className = '', children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={`text-sm text-muted-foreground ${className}`} {...props}>{children}</p>;
+  return <p className={`text-xs text-muted-foreground leading-normal ${className}`} {...props}>{children}</p>;
 }
 
 export function CardContent({ className = '', children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={`p-6 pt-0 ${className}`} {...props}>{children}</div>;
+}
+
+export function CardHeaderContent({ className = '', children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={`px-6 py-4 border-b border-border/20 ${className}`} {...props}>{children}</div>;
 }
 
 export function CardFooter({ className = '', children, ...props }: React.HTMLAttributes<HTMLDivElement>) {

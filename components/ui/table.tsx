@@ -2,7 +2,7 @@ import React from 'react';
 
 export function Table({ className = '', children, ...props }: React.HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto border border-border/20 rounded-xl bg-card/30 backdrop-blur-sm shadow-sm">
       <table className={`w-full min-w-[600px] border-collapse text-left text-sm ${className}`} {...props}>
         {children}
       </table>
@@ -11,23 +11,23 @@ export function Table({ className = '', children, ...props }: React.HTMLAttribut
 }
 
 export function TableHeader({ className = '', children, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={`border-b border-border bg-muted/40 ${className}`} {...props}>{children}</thead>;
+  return <thead className={`border-b border-border/25 bg-muted/15 ${className}`} {...props}>{children}</thead>;
 }
 
 export function TableBody({ className = '', children, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
-  return <tbody className={`divide-y divide-border/40 ${className}`} {...props}>{children}</tbody>;
+  return <tbody className={`divide-y divide-border/20 ${className}`} {...props}>{children}</tbody>;
 }
 
 export function TableRow({ className = '', children, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={`transition-colors hover:bg-muted/30 ${className}`} {...props}>{children}</tr>;
+  return <tr className={`transition-all duration-150 hover:bg-muted/15 ${className}`} {...props}>{children}</tr>;
 }
 
 export function TableHead({ className = '', children, ...props }: React.HTMLAttributes<HTMLTableCellElement>) {
-  return <th className={`px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider ${className}`} {...props}>{children}</th>;
+  return <th className={`px-4 py-3 text-[10px] font-extrabold text-muted-foreground/75 uppercase tracking-[0.14em] select-none ${className}`} {...props}>{children}</th>;
 }
 
 export function TableCell({ className = '', children, ...props }: React.HTMLAttributes<HTMLTableCellElement>) {
-  return <td className={`px-4 py-3.5 align-middle text-foreground ${className}`} {...props}>{children}</td>;
+  return <td className={`px-4 py-3 text-xs md:text-sm font-medium text-foreground/90 align-middle ${className}`} {...props}>{children}</td>;
 }
 
 export default Table;

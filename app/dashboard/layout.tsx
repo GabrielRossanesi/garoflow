@@ -66,8 +66,8 @@ export default function DashboardLayout({
       {/* Premium Background Layers */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 select-none">
         {/* Glows in Dark Mode */}
-        <div className="absolute top-[-15%] left-[-15%] w-[60%] h-[60%] rounded-full bg-primary/8 blur-[120px] dark:bg-primary/4 dark:block hidden transition-opacity duration-300" />
-        <div className="absolute bottom-[-15%] right-[-15%] w-[60%] h-[60%] rounded-full bg-secondary/8 blur-[120px] dark:bg-secondary/4 dark:block hidden transition-opacity duration-300" />
+        <div className="absolute top-[-15%] left-[-15%] w-[60%] h-[60%] rounded-full bg-primary/4 blur-[120px] dark:bg-primary/2.5 dark:block hidden transition-opacity duration-300" />
+        <div className="absolute bottom-[-15%] right-[-15%] w-[60%] h-[60%] rounded-full bg-secondary/6 blur-[120px] dark:bg-secondary/3 dark:block hidden transition-opacity duration-300" />
 
         {/* Parallax layer: Subtle glowing circles */}
         <div
@@ -76,17 +76,17 @@ export default function DashboardLayout({
             transform: `translate(${backgroundOffset.x}px, ${backgroundOffset.y}px)`,
           }}
         >
-          <div className="absolute top-[25%] right-[20%] w-80 h-80 rounded-full bg-primary/2 blur-[80px]" />
-          <div className="absolute bottom-[20%] left-[15%] w-[450px] h-[450px] rounded-full bg-info/2 blur-[100px]" />
+          <div className="absolute top-[25%] right-[20%] w-80 h-80 rounded-full bg-primary/1.5 blur-[85px]" />
+          <div className="absolute bottom-[20%] left-[15%] w-[450px] h-[450px] rounded-full bg-accent-cool/1.5 blur-[110px]" />
         </div>
 
         {/* Grid Overlay with Radial Gradient Mask */}
         <div
-          className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.03)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_65%_55%_at_50%_40%,#000_60%,transparent_100%)] opacity-40 dark:opacity-50"
+          className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.02)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_65%_55%_at_50%_40%,#000_60%,transparent_100%)] opacity-30 dark:opacity-40"
         />
 
         {/* Very subtle dark-vignette depth */}
-        <div className="absolute inset-0 bg-[radial-gradient(transparent_50%,rgba(0,0,0,0.03))] dark:bg-[radial-gradient(transparent_50%,rgba(0,0,0,0.15))] opacity-40" />
+        <div className="absolute inset-0 bg-[radial-gradient(transparent_50%,rgba(0,0,0,0.02))] dark:bg-[radial-gradient(transparent_50%,rgba(0,0,0,0.12))] opacity-30" />
       </div>
 
       {/* Main Layout Layer */}

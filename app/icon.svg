@@ -1,0 +1,37 @@
+<svg
+  viewBox="0 0 100 100"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  width="32"
+  height="32"
+>
+  {/* The N Monogram */}
+  <path
+    d="M26 70 V30 L52 70 V30"
+    stroke="#d4b26f"
+    strokeWidth="10"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  />
+  {/* The V Monogram Extension */}
+  <path
+    d="M52 70 L74 30"
+    stroke="#d4b26f"
+    strokeWidth="10"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  />
+  {/* Center Hub Node */}
+  <circle
+    cx="52"
+    cy="70"
+    r="7.5"
+    fill="#ffffff"
+  />
+  <circle
+    cx="52"
+    cy="70"
+    r="3"
+    fill="#d4b26f"
+  />
+</svg>

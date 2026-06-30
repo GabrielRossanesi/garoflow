@@ -33,7 +33,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         </Button>
         
         {/* Search Mock */}
-        <div className="hidden md:flex items-center gap-2 border border-border bg-muted/30 rounded-lg px-3 py-1.5 w-64 text-muted-foreground focus-within:border-primary/50 transition-colors">
+        <div className="hidden md:flex items-center gap-2.5 border border-border/40 bg-muted/10 rounded-lg px-3 py-1.5 w-64 text-muted-foreground focus-within:border-primary/50 focus-within:bg-muted/20 transition-all duration-200">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground/80" />
           <input
             type="text"

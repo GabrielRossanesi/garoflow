@@ -9,20 +9,20 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
     
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] cursor-pointer';
+    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97] cursor-pointer';
     
     const variants = {
-      primary: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/95',
-      secondary: 'bg-muted text-foreground hover:bg-muted/80 border border-border',
-      outline: 'bg-transparent text-foreground border border-border hover:bg-muted/50',
-      ghost: 'bg-transparent text-foreground hover:bg-muted',
-      danger: 'bg-danger text-danger-foreground hover:bg-danger/95 shadow-sm',
+      primary: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:shadow-primary/10 dark:hover:shadow-primary/5 border border-primary/20',
+      secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border/40',
+      outline: 'bg-transparent text-foreground border border-border/60 hover:bg-muted/40 hover:border-border/80',
+      ghost: 'bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50',
+      danger: 'bg-danger text-danger-foreground hover:bg-danger/90 shadow-sm border border-danger/20',
     };
 
     const sizes = {
-      sm: 'h-8 px-3 text-xs',
-      md: 'h-10 px-4 py-2 text-sm',
-      lg: 'h-12 px-6 text-base',
+      sm: 'h-8 px-3 text-xs tracking-tight',
+      md: 'h-10 px-4 py-2 text-sm tracking-tight',
+      lg: 'h-12 px-6 text-base tracking-tight',
     };
 
     return (
