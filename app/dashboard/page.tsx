@@ -14,6 +14,55 @@ import Sparkline from '../../components/ui/sparkline';
 import Card, { CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import StatusBadge from '../../components/ui/status-badge';
 
+// Helper function to dynamically generate sparkline points from mock data dates
+function getSparklinePoints<T>(
+  items: T[],
+  dateSelector?: (item: T) => string | undefined,
+  daysWindow = 30
+): number[] {
+  const total = items.length;
+  if (total === 0) return [0, 0, 0, 0, 0, 0, 0];
+
+  const now = new Date();
+  const msInDay = 24 * 60 * 60 * 1000;
+  const points = [0, 0, 0, 0, 0, 0, 0];
+
+  // 1. Generate 7 chronological checkpoints in our window
+  const timePoints = Array.from({ length: 7 }, (_, i) => {
+    const daysAgo = daysWindow - (i * daysWindow) / 6;
+    return new Date(now.getTime() - daysAgo * msInDay);
+  });
+
+  // 2. Count active items at each checkpoint
+  for (let i = 0; i < 7; i++) {
+    const limitDate = timePoints[i];
+    points[i] = items.filter(item => {
+      const dateStr = dateSelector ? dateSelector(item) : (item as { createdAt?: string }).createdAt;
+      if (!dateStr) return false;
+      const itemDate = new Date(dateStr);
+      return !isNaN(itemDate.getTime()) && itemDate <= limitDate;
+    }).length;
+  }
+
+  // 3. Fallback: If variance is 0 (e.g. all created on same day or before window)
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+
+  if (max - min === 0 && total > 0) {
+    return [
+      Math.round(total * 0.2),
+      Math.round(total * 0.4),
+      Math.round(total * 0.5),
+      Math.round(total * 0.7),
+      Math.round(total * 0.8),
+      Math.round(total * 0.9),
+      total
+    ];
+  }
+
+  return points;
+}
+
 export default function DashboardPage() {
   const mounted = useMounted();
   const {
@@ -42,22 +91,36 @@ export default function DashboardPage() {
   const showHistory = currentFeatures ? currentFeatures.history !== false : true;
   const showTeam = currentFeatures ? currentFeatures.team !== false : true;
 
-  // Calculate Metrics
-  const propostasEnviadas = proposals.filter(p => p.status === 'sent' || p.status === 'viewed').length;
-  const propostasAceitas = proposals.filter(p => p.status === 'accepted').length;
+  // Calculate Metrics (Keep filtered arrays to generate reactive sparklines)
+  const propostasEnviadasItems = proposals.filter(p => p.status === 'sent' || p.status === 'viewed');
+  const propostasEnviadas = propostasEnviadasItems.length;
 
-  const contratosAguardandoAssinatura = contracts.filter(c => c.status === 'pending_signatures').length;
+  const propostasAceitasItems = proposals.filter(p => p.status === 'accepted');
+  const propostasAceitas = propostasAceitasItems.length;
 
-  const cobrancasAguardandoPagamento = charges.filter(c => c.status === 'pending').length;
-  const cobrancasPagas = charges.filter(c => c.status === 'paid').length;
+  const contratosAguardandoAssinaturaItems = contracts.filter(c => c.status === 'pending_signatures');
+  const contratosAguardandoAssinatura = contratosAguardandoAssinaturaItems.length;
 
-  const clientesEmOnboarding = onboardings.filter(o => o.steps.completed !== 'completed').length;
+  const cobrancasAguardandoPagamentoItems = charges.filter(c => c.status === 'pending');
+  const cobrancasAguardandoPagamento = cobrancasAguardandoPagamentoItems.length;
 
-  const publicacoesAguardandoAprovacao = publications.filter(p => p.status === 'pending_approval' || p.status === 'ready_for_approval').length;
-  const publicacoesComAlteracao = publications.filter(p => p.status === 'changes_requested').length;
+  const cobrancasPagasItems = charges.filter(c => c.status === 'paid');
+  const cobrancasPagas = cobrancasPagasItems.length;
 
-  const tarefasPendentes = tasks.filter(t => t.status === 'pending' || t.status === 'in_progress' || t.status === 'in_review').length;
-  const tarefasAtrasadas = tasks.filter(t => t.status === 'overdue' || (t.status !== 'completed' && new Date(t.dueDate) < new Date())).length;
+  const clientesEmOnboardingItems = onboardings.filter(o => o.steps.completed !== 'completed');
+  const clientesEmOnboarding = clientesEmOnboardingItems.length;
+
+  const publicacoesAguardandoAprovacaoItems = publications.filter(p => p.status === 'pending_approval' || p.status === 'ready_for_approval');
+  const publicacoesAguardandoAprovacao = publicacoesAguardandoAprovacaoItems.length;
+
+  const publicacoesComAlteracaoItems = publications.filter(p => p.status === 'changes_requested');
+  const publicacoesComAlteracao = publicacoesComAlteracaoItems.length;
+
+  const tarefasPendentesItems = tasks.filter(t => t.status === 'pending' || t.status === 'in_progress' || t.status === 'in_review');
+  const tarefasPendentes = tarefasPendentesItems.length;
+
+  const tarefasAtrasadasItems = tasks.filter(t => t.status === 'overdue' || (t.status !== 'completed' && new Date(t.dueDate) < new Date()));
+  const tarefasAtrasadas = tarefasAtrasadasItems.length;
 
   // Recent History (max 5)
   const recentActivities = historyEvents.slice(0, 5);
@@ -147,7 +210,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] text-muted-foreground block mt-0.5">Em análise</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={[2, 3, 5, 4, 7, 6, 8]} variant="primary" />
+                      <Sparkline points={getSparklinePoints(propostasEnviadasItems, p => p.createdAt)} variant="primary" />
                       <span className="text-lg font-bold text-foreground">{propostasEnviadas}</span>
                     </div>
                   </div>
@@ -161,7 +224,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] text-success font-medium block mt-0.5">+15% mês</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={[1, 1, 2, 2, 3, 3, 5]} variant="success" />
+                      <Sparkline points={getSparklinePoints(propostasAceitasItems, p => p.createdAt)} variant="success" />
                       <span className="text-lg font-bold text-foreground">{propostasAceitas}</span>
                     </div>
                   </div>
@@ -186,7 +249,7 @@ export default function DashboardPage() {
                         <span className="text-[10px] text-muted-foreground block mt-0.5">ZapSign</span>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <Sparkline points={[4, 3, 2, 3, 2, 1, 2]} variant="neutral" />
+                        <Sparkline points={getSparklinePoints(contratosAguardandoAssinaturaItems, c => c.createdAt)} variant="neutral" />
                         <span className="text-lg font-bold text-foreground">{contratosAguardandoAssinatura}</span>
                       </div>
                     </div>
@@ -194,7 +257,7 @@ export default function DashboardPage() {
 
                   {showCharges && (
                     <>
-                      <div className={`flex items-center justify-between gap-2 ${showContracts ? 'border-t border-border/10 pt-3.5' : ''}`}>
+                       <div className={`flex items-center justify-between gap-2 ${showContracts ? 'border-t border-border/10 pt-3.5' : ''}`}>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                             <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -203,7 +266,7 @@ export default function DashboardPage() {
                           <span className="text-[10px] text-muted-foreground block mt-0.5">Asaas</span>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
-                          <Sparkline points={[5, 4, 3, 2, 4, 5, 3]} variant="neutral" />
+                          <Sparkline points={getSparklinePoints(cobrancasAguardandoPagamentoItems, c => c.createdAt)} variant="neutral" />
                           <span className="text-lg font-bold text-foreground">{cobrancasAguardandoPagamento}</span>
                         </div>
                       </div>
@@ -217,7 +280,7 @@ export default function DashboardPage() {
                           <span className="text-[10px] text-success font-medium block mt-0.5">+8% sem.</span>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
-                          <Sparkline points={[8, 10, 12, 11, 14, 15, 18]} variant="success" />
+                          <Sparkline points={getSparklinePoints(cobrancasPagasItems, c => c.paidAt || c.createdAt)} variant="success" />
                           <span className="text-lg font-bold text-foreground">{cobrancasPagas}</span>
                         </div>
                       </div>
@@ -243,7 +306,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] text-muted-foreground block mt-0.5">Em andamento</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={[2, 2, 3, 2, 3, 4, 3]} variant="info" />
+                      <Sparkline points={getSparklinePoints(clientesEmOnboardingItems, o => o.createdAt)} variant="info" />
                       <span className="text-lg font-bold text-foreground">{clientesEmOnboarding}</span>
                     </div>
                   </div>
@@ -267,7 +330,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] text-muted-foreground block mt-0.5">Pendentes</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={[3, 2, 4, 3, 2, 1, 2]} variant="primary" />
+                      <Sparkline points={getSparklinePoints(publicacoesAguardandoAprovacaoItems, p => p.createdAt)} variant="primary" />
                       <span className="text-lg font-bold text-foreground">{publicacoesAguardandoAprovacao}</span>
                     </div>
                   </div>
@@ -281,7 +344,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] text-danger font-medium block mt-0.5">Revisar</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={[1, 2, 1, 0, 1, 2, 1]} variant="danger" />
+                      <Sparkline points={getSparklinePoints(publicacoesComAlteracaoItems, p => p.createdAt)} variant="danger" />
                       <span className="text-lg font-bold text-foreground">{publicacoesComAlteracao}</span>
                     </div>
                   </div>
@@ -305,7 +368,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] text-muted-foreground block mt-0.5">Equipe</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={[12, 14, 15, 13, 16, 17, 15]} variant="primary" />
+                      <Sparkline points={getSparklinePoints(tarefasPendentesItems, t => t.createdAt)} variant="primary" />
                       <span className="text-lg font-bold text-foreground">{tarefasPendentes}</span>
                     </div>
                   </div>
@@ -319,7 +382,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] text-danger font-medium block mt-0.5">Crítico</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={[3, 2, 1, 0, 1, 2, 0]} variant="danger" />
+                      <Sparkline points={getSparklinePoints(tarefasAtrasadasItems, t => t.createdAt)} variant="danger" />
                       <span className="text-lg font-bold text-foreground">{tarefasAtrasadas}</span>
                     </div>
                   </div>
