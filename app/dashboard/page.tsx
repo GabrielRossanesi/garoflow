@@ -154,10 +154,10 @@ export default function DashboardPage() {
   ].filter(Boolean).length;
 
   const gridColsClass =
-    activeKpis === 5 ? 'lg:grid-cols-5' :
-    activeKpis === 4 ? 'lg:grid-cols-4' :
-    activeKpis === 3 ? 'lg:grid-cols-3' :
-    activeKpis === 2 ? 'lg:grid-cols-2' : 'lg:grid-cols-1';
+    activeKpis === 5 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5' :
+    activeKpis === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' :
+    activeKpis === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+    activeKpis === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1';
 
   // Overall enabled count (excluding publicProposal since it's external)
   const enabledCount = [
@@ -205,12 +205,12 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                         <Send className="h-3.5 w-3.5 text-primary shrink-0" />
-                        <span className="truncate">Enviadas</span>
+                        <span className="whitespace-nowrap font-medium">Enviadas</span>
                       </div>
                       <span className="text-[10px] text-muted-foreground block mt-0.5">Em análise</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={getSparklinePoints(propostasEnviadasItems, p => p.createdAt)} variant="primary" />
+                      <Sparkline points={getSparklinePoints(propostasEnviadasItems, p => p.createdAt)} variant="primary" className="w-16 sm:w-20 md:w-24" />
                       <span className="text-lg font-bold text-foreground">{propostasEnviadas}</span>
                     </div>
                   </div>
@@ -219,12 +219,12 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                         <CheckCircle className="h-3.5 w-3.5 text-success shrink-0" />
-                        <span className="truncate">Aceitas</span>
+                        <span className="whitespace-nowrap font-medium">Aceitas</span>
                       </div>
                       <span className="text-[10px] text-success font-medium block mt-0.5">+15% mês</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={getSparklinePoints(propostasAceitasItems, p => p.createdAt)} variant="success" />
+                      <Sparkline points={getSparklinePoints(propostasAceitasItems, p => p.createdAt)} variant="success" className="w-16 sm:w-20 md:w-24" />
                       <span className="text-lg font-bold text-foreground">{propostasAceitas}</span>
                     </div>
                   </div>
@@ -244,12 +244,12 @@ export default function DashboardPage() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                           <FileSignature className="h-3.5 w-3.5 text-warning shrink-0" />
-                          <span className="truncate">Assinaturas</span>
+                          <span className="whitespace-nowrap font-medium">Assinaturas</span>
                         </div>
                         <span className="text-[10px] text-muted-foreground block mt-0.5">ZapSign</span>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <Sparkline points={getSparklinePoints(contratosAguardandoAssinaturaItems, c => c.createdAt)} variant="neutral" />
+                        <Sparkline points={getSparklinePoints(contratosAguardandoAssinaturaItems, c => c.createdAt)} variant="neutral" className="w-16 sm:w-20 md:w-24" />
                         <span className="text-lg font-bold text-foreground">{contratosAguardandoAssinatura}</span>
                       </div>
                     </div>
@@ -261,12 +261,12 @@ export default function DashboardPage() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                             <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                            <span className="truncate">Pendente</span>
+                            <span className="whitespace-nowrap font-medium">Pendente</span>
                           </div>
                           <span className="text-[10px] text-muted-foreground block mt-0.5">Asaas</span>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
-                          <Sparkline points={getSparklinePoints(cobrancasAguardandoPagamentoItems, c => c.createdAt)} variant="neutral" />
+                          <Sparkline points={getSparklinePoints(cobrancasAguardandoPagamentoItems, c => c.createdAt)} variant="neutral" className="w-16 sm:w-20 md:w-24" />
                           <span className="text-lg font-bold text-foreground">{cobrancasAguardandoPagamento}</span>
                         </div>
                       </div>
@@ -275,12 +275,12 @@ export default function DashboardPage() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                             <CreditCard className="h-3.5 w-3.5 text-success shrink-0" />
-                            <span className="truncate">Pago</span>
+                            <span className="whitespace-nowrap font-medium">Pago</span>
                           </div>
                           <span className="text-[10px] text-success font-medium block mt-0.5">+8% sem.</span>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
-                          <Sparkline points={getSparklinePoints(cobrancasPagasItems, c => c.paidAt || c.createdAt)} variant="success" />
+                          <Sparkline points={getSparklinePoints(cobrancasPagasItems, c => c.paidAt || c.createdAt)} variant="success" className="w-16 sm:w-20 md:w-24" />
                           <span className="text-lg font-bold text-foreground">{cobrancasPagas}</span>
                         </div>
                       </div>
@@ -301,12 +301,12 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                         <UserPlus className="h-3.5 w-3.5 text-info shrink-0" />
-                        <span className="truncate">Onboarding</span>
+                        <span className="whitespace-nowrap font-medium">Onboarding</span>
                       </div>
                       <span className="text-[10px] text-muted-foreground block mt-0.5">Em andamento</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={getSparklinePoints(clientesEmOnboardingItems, o => o.createdAt)} variant="info" />
+                      <Sparkline points={getSparklinePoints(clientesEmOnboardingItems, o => o.createdAt)} variant="info" className="w-16 sm:w-20 md:w-24" />
                       <span className="text-lg font-bold text-foreground">{clientesEmOnboarding}</span>
                     </div>
                   </div>
@@ -325,12 +325,12 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                         <ImageIcon className="h-3.5 w-3.5 text-primary shrink-0" />
-                        <span className="truncate">Aprovar</span>
+                        <span className="whitespace-nowrap font-medium">Aprovar</span>
                       </div>
                       <span className="text-[10px] text-muted-foreground block mt-0.5">Pendentes</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={getSparklinePoints(publicacoesAguardandoAprovacaoItems, p => p.createdAt)} variant="primary" />
+                      <Sparkline points={getSparklinePoints(publicacoesAguardandoAprovacaoItems, p => p.createdAt)} variant="primary" className="w-16 sm:w-20 md:w-24" />
                       <span className="text-lg font-bold text-foreground">{publicacoesAguardandoAprovacao}</span>
                     </div>
                   </div>
@@ -339,12 +339,12 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                         <AlertCircle className="h-3.5 w-3.5 text-danger shrink-0" />
-                        <span className="truncate">Alterar</span>
+                        <span className="whitespace-nowrap font-medium">Alterar</span>
                       </div>
                       <span className="text-[10px] text-danger font-medium block mt-0.5">Revisar</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={getSparklinePoints(publicacoesComAlteracaoItems, p => p.createdAt)} variant="danger" />
+                      <Sparkline points={getSparklinePoints(publicacoesComAlteracaoItems, p => p.createdAt)} variant="danger" className="w-16 sm:w-20 md:w-24" />
                       <span className="text-lg font-bold text-foreground">{publicacoesComAlteracao}</span>
                     </div>
                   </div>
@@ -363,12 +363,12 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                         <CheckSquare className="h-3.5 w-3.5 text-primary shrink-0" />
-                        <span className="truncate">Pendentes</span>
+                        <span className="whitespace-nowrap font-medium">Pendentes</span>
                       </div>
                       <span className="text-[10px] text-muted-foreground block mt-0.5">Equipe</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={getSparklinePoints(tarefasPendentesItems, t => t.createdAt)} variant="primary" />
+                      <Sparkline points={getSparklinePoints(tarefasPendentesItems, t => t.createdAt)} variant="primary" className="w-16 sm:w-20 md:w-24" />
                       <span className="text-lg font-bold text-foreground">{tarefasPendentes}</span>
                     </div>
                   </div>
@@ -377,12 +377,12 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
                         <AlertTriangle className="h-3.5 w-3.5 text-danger shrink-0" />
-                        <span className="truncate">Atrasadas</span>
+                        <span className="whitespace-nowrap font-medium">Atrasadas</span>
                       </div>
                       <span className="text-[10px] text-danger font-medium block mt-0.5">Crítico</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Sparkline points={getSparklinePoints(tarefasAtrasadasItems, t => t.createdAt)} variant="danger" />
+                      <Sparkline points={getSparklinePoints(tarefasAtrasadasItems, t => t.createdAt)} variant="danger" className="w-16 sm:w-20 md:w-24" />
                       <span className="text-lg font-bold text-foreground">{tarefasAtrasadas}</span>
                     </div>
                   </div>
@@ -396,11 +396,11 @@ export default function DashboardPage() {
 
       {/* Main Content Dashboard Sections */}
       {(hasLeftColumn || hasRightColumn) && (
-        <div className={`grid grid-cols-1 ${hasLeftColumn && hasRightColumn ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-8`}>
+        <div className={`grid grid-cols-1 ${hasLeftColumn && hasRightColumn ? 'xl:grid-cols-3' : 'xl:grid-cols-1'} gap-8`}>
 
           {/* Left Column (Activities & Upcoming Tasks) */}
           {hasLeftColumn && (
-            <div className={`${hasLeftColumn && hasRightColumn ? 'lg:col-span-2' : ''} space-y-8`}>
+            <div className={`${hasLeftColumn && hasRightColumn ? 'xl:col-span-2' : ''} space-y-8`}>
 
               {/* Upcoming Tasks */}
               {showTasks && (

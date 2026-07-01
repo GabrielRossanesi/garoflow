@@ -34,7 +34,7 @@ export function Sparkline({ points, variant = 'primary', className = '' }: Spark
 
   return (
     <svg 
-      className={`w-24 h-8 overflow-visible ${colorMap[variant]} ${className}`} 
+      className={`h-8 overflow-visible ${colorMap[variant]} ${className || 'w-24'}`} 
       viewBox={`0 0 ${width} ${height}`}
     >
       <polyline
