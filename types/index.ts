@@ -170,6 +170,20 @@ export interface Publication {
   clientComments?: string;
   responsibleUser: string;
   createdAt: string;
+  // Approval link details
+  approvalToken?: string;
+  approvalLinkCreatedAt?: string;
+  approvalLinkExpiresAt?: string;
+  approvalLinkStatus?: 'not_created' | 'active' | 'expired' | 'approved' | 'changes_requested';
+  approvedAt?: string;
+  changesRequestedAt?: string;
+  clientFeedback?: string;
+  // Sandbox upload details
+  imageSource?: 'upload' | 'external_url' | 'mock';
+  imageFileName?: string;
+  imageMimeType?: string;
+  imageSize?: number;
+  platform?: 'instagram' | 'facebook' | 'linkedin' | 'tiktok' | 'google_business' | 'other';
 }
 
 export type TaskStatus = 'pending' | 'in_progress' | 'in_review' | 'completed' | 'overdue';

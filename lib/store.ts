@@ -136,6 +136,10 @@ interface SystemState {
 
   addPublication: (pub: Omit<Publication, 'id' | 'organizationId' | 'createdAt'> & { organizationId?: string }) => Publication;
   updatePublicationStatus: (id: string, status: PublicationStatus, comments?: string) => void;
+  createPublicationApprovalLink: (publicationId: string) => string;
+  regeneratePublicationApprovalLink: (publicationId: string) => string;
+  approvePublicationByToken: (publicationId: string, token: string) => void;
+  requestPublicationChangesByToken: (publicationId: string, token: string, feedback: string) => void;
 
   addTask: (task: Omit<TeamTask, 'id' | 'organizationId' | 'createdAt'> & { organizationId?: string }) => TeamTask | null;
   updateTaskStatus: (id: string, status: TaskStatus) => void;
@@ -2422,6 +2426,76 @@ export const useStore = create<SystemState>()(
             });
           }
         }
+      },
+
+      createPublicationApprovalLink: (publicationId) => {
+        const token = `approval_${Math.random().toString(36).substring(2, 15)}`;
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+        const approvalLink = `${origin}/publicacao/${publicationId}/aprovacao?token=${token}`;
+        
+        set((state) => ({
+          publications: state.publications.map((pub) =>
+            pub.id === publicationId
+              ? {
+                  ...pub,
+                  approvalToken: token,
+                  approvalLinkCreatedAt: new Date().toISOString(),
+                  approvalLinkExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                  approvalLinkStatus: 'active',
+                  approvalLink
+                }
+              : pub
+          )
+        }));
+        
+        return approvalLink;
+      },
+
+      regeneratePublicationApprovalLink: (publicationId) => {
+        return get().createPublicationApprovalLink(publicationId);
+      },
+
+      approvePublicationByToken: (publicationId, token) => {
+        const pub = get().publications.find(
+          (p) => p.id === publicationId && p.approvalToken === token
+        );
+        if (!pub) return;
+
+        get().updatePublicationStatus(publicationId, 'approved');
+
+        set((state) => ({
+          publications: state.publications.map((p) =>
+            p.id === publicationId
+              ? {
+                  ...p,
+                  approvalLinkStatus: 'approved',
+                  approvedAt: new Date().toISOString()
+                }
+              : p
+          )
+        }));
+      },
+
+      requestPublicationChangesByToken: (publicationId, token, feedback) => {
+        const pub = get().publications.find(
+          (p) => p.id === publicationId && p.approvalToken === token
+        );
+        if (!pub) return;
+
+        get().updatePublicationStatus(publicationId, 'changes_requested', feedback);
+
+        set((state) => ({
+          publications: state.publications.map((p) =>
+            p.id === publicationId
+              ? {
+                  ...p,
+                  approvalLinkStatus: 'changes_requested',
+                  changesRequestedAt: new Date().toISOString(),
+                  clientFeedback: feedback
+                }
+              : p
+          )
+        }));
       },
 
       addTask: (taskData) => {

@@ -1,7 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Image as ImageIcon, Search, Filter, Plus, Check, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Image as ImageIcon, 
+  Search, 
+  Filter, 
+  Plus, 
+  Check, 
+  AlertCircle,
+  Link as LinkIcon,
+  Copy,
+  ExternalLink,
+  Clock,
+  RefreshCw,
+  Send,
+  AlertTriangle
+} from 'lucide-react';
 import { useTenantStore } from '../../lib/store';
 import { useMounted } from '../../hooks/useMounted';
 import { PageHeader as UIHeader } from '../../components/ui/page-header';
@@ -15,9 +29,83 @@ import StatusBadge from '../../components/ui/status-badge';
 import EmptyState from '../../components/ui/empty-state';
 import DatePicker from '../../components/ui/date-picker';
 
+// Custom Brand Icons to avoid missing lucide-react exports
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+function LinkedinIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect x="2" y="9" width="4" height="12" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  );
+}
+
+// Helper component for the countdown timer
+function CountdownTimer({ expiresAt }: { expiresAt: string }) {
+  const [timeLeft, setTimeLeft] = useState('');
+  
+  useEffect(() => {
+    const updateTime = () => {
+      const diff = new Date(expiresAt).getTime() - new Date().getTime();
+      if (diff <= 0) {
+        setTimeLeft('Expirado');
+      } else {
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        setTimeLeft(`Expira em ${hours}h ${minutes}m`);
+      }
+    };
+    
+    updateTime();
+    const interval = setInterval(updateTime, 60000); // update every minute
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+  
+  return <span className="text-xs font-semibold text-amber-500">{timeLeft}</span>;
+}
+
+// Helper to render platform icon
+function PlatformIcon({ platform }: { platform?: string }) {
+  switch (platform) {
+    case 'instagram':
+      return <InstagramIcon className="h-3.5 w-3.5 text-pink-500" />;
+    case 'facebook':
+      return <FacebookIcon className="h-3.5 w-3.5 text-blue-600" />;
+    case 'linkedin':
+      return <LinkedinIcon className="h-3.5 w-3.5 text-sky-700" />;
+    default:
+      return <Send className="h-3.5 w-3.5 text-primary" />;
+  }
+}
+
 export default function PublicacoesPage() {
   const mounted = useMounted();
-  const { publications, clients, addPublication, updatePublicationStatus, teamMembers } = useTenantStore();
+  const { 
+    publications, 
+    clients, 
+    addPublication, 
+    teamMembers,
+    createPublicationApprovalLink,
+    regeneratePublicationApprovalLink
+  } = useTenantStore();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -25,16 +113,24 @@ export default function PublicacoesPage() {
 
   // Form States
   const [selectedClientId, setSelectedClientId] = useState('');
+  const [imageSource, setImageSource] = useState<'upload' | 'external_url'>('external_url');
   const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80');
+  const [imageFileBase64, setImageFileBase64] = useState('');
+  const [imageFileName, setImageFileName] = useState('');
+  const [imageSize, setImageSize] = useState(0);
+  const [imageMimeType, setImageMimeType] = useState('');
+  const [fileError, setFileError] = useState<string | null>(null);
+  
   const [caption, setCaption] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
   const [responsavel, setResponsavel] = useState('João Santos');
-
-  // Comment state for revisions
-  const [pubComments, setPubComments] = useState<Record<string, string>>({});
+  const [platform, setPlatform] = useState<'instagram' | 'facebook' | 'linkedin' | 'tiktok' | 'google_business' | 'other'>('instagram');
 
   // Expanded caption state
   const [expandedCaptions, setExpandedCaptions] = useState<Record<string, boolean>>({});
+  
+  // Clipboard copy feedback state
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   if (!mounted) {
     return (
@@ -56,6 +152,37 @@ export default function PublicacoesPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size (1.5MB max)
+    if (file.size > 1.5 * 1024 * 1024) {
+      setFileError('Imagem muito grande para o ambiente demonstrativo. Use uma imagem menor ou informe uma URL externa.');
+      setImageFileBase64('');
+      return;
+    }
+
+    // Validate type
+    if (!file.type.startsWith('image/')) {
+      setFileError('Tipo de arquivo inválido. Selecione uma imagem (PNG, JPG, WEBP).');
+      setImageFileBase64('');
+      return;
+    }
+
+    setFileError(null);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setImageFileBase64(event.target.result as string);
+        setImageFileName(file.name);
+        setImageSize(file.size);
+        setImageMimeType(file.type);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleCreatePublication = (e: React.FormEvent) => {
     e.preventDefault();
     const client = clients.find(c => c.id === selectedClientId);
@@ -64,30 +191,65 @@ export default function PublicacoesPage() {
       return;
     }
 
+    const finalImageUrl = imageSource === 'upload' ? imageFileBase64 : imageUrl;
+    if (!finalImageUrl) {
+      alert('Selecione uma imagem para upload ou insira uma URL de imagem.');
+      return;
+    }
+
     addPublication({
       clientId: client.id,
       clientName: client.name,
       companyName: client.companyName,
-      imageUrl: imageUrl,
+      imageUrl: finalImageUrl,
       caption: caption,
       scheduledDate: scheduledDate,
       status: 'pending_approval',
-      approvalLink: `https://nvhub.com.br/aprovar/mock_${Date.now()}`,
-      responsibleUser: responsavel
+      approvalLink: '', // Generated via action afterwards
+      responsibleUser: responsavel,
+      platform: platform,
+      imageSource: imageSource,
+      imageFileName: imageSource === 'upload' ? imageFileName : undefined,
+      imageSize: imageSource === 'upload' ? imageSize : undefined,
+      imageMimeType: imageSource === 'upload' ? imageMimeType : undefined,
     });
 
     setSelectedClientId('');
+    setImageSource('external_url');
     setImageUrl('https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80');
+    setImageFileBase64('');
+    setImageFileName('');
+    setImageSize(0);
+    setImageMimeType('');
     setCaption('');
     setScheduledDate('');
     setResponsavel('João Santos');
+    setPlatform('instagram');
+    setFileError(null);
     setIsModalOpen(false);
+  };
+
+  const handleCopyLink = (pubId: string, approvalLink: string) => {
+    if (typeof navigator !== 'undefined') {
+      navigator.clipboard.writeText(approvalLink);
+      setCopiedId(pubId);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
   };
 
   const clientOptions = clients.map(c => ({ value: c.id, label: c.companyName }));
   const teamOptions = teamMembers.map(m => ({ value: m.name, label: m.name }));
+  
+  const platformOptions = [
+    { value: 'instagram', label: 'Instagram' },
+    { value: 'facebook', label: 'Facebook' },
+    { value: 'linkedin', label: 'LinkedIn' },
+    { value: 'tiktok', label: 'TikTok' },
+    { value: 'google_business', label: 'Google Business' },
+    { value: 'other', label: 'Outro' }
+  ];
 
-
+  const finalPreviewImageUrl = imageSource === 'upload' ? imageFileBase64 : imageUrl;
 
   return (
     <div className="space-y-6">
@@ -151,123 +313,173 @@ export default function PublicacoesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPubs.map((pub) => (
-            <Card key={pub.id} className="overflow-hidden border border-border flex flex-col justify-between hover:shadow-md transition-shadow h-full">
-              <div className="flex flex-col flex-1">
-                {/* Visual Image Preview */}
-                <div className="relative h-48 bg-muted overflow-hidden shrink-0 border-b border-border/60">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={pub.imageUrl} 
-                    alt="Social media post visual creative" 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2.5 right-2.5">
-                    <StatusBadge type="publication" status={pub.status} />
+          {filteredPubs.map((pub) => {
+            const isExpired = pub.approvalLinkExpiresAt && new Date(pub.approvalLinkExpiresAt) < new Date();
+            
+            return (
+              <Card key={pub.id} className="overflow-hidden border border-border flex flex-col justify-between hover:shadow-md transition-shadow h-full bg-card">
+                <div className="flex flex-col flex-1">
+                  {/* Visual Image Preview */}
+                  <div className="relative h-48 bg-muted overflow-hidden shrink-0 border-b border-border/60">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={pub.imageUrl} 
+                      alt="Social media post visual creative" 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                      <div className="h-6 w-6 rounded-full bg-slate-900/80 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                        <PlatformIcon platform={pub.platform} />
+                      </div>
+                      <StatusBadge type="publication" status={pub.status} />
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="p-4 flex flex-col flex-1 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <span className="font-bold text-sm text-foreground block truncate" title={pub.companyName}>{pub.companyName}</span>
+                        <span className="text-[10px] text-muted-foreground mt-0.5">Contato: {pub.clientName}</span>
+                      </div>
+                      <div className="text-right text-[10px] text-muted-foreground shrink-0">
+                        <span className="block font-medium">Agendamento:</span>
+                        <strong className="text-foreground">{new Date(pub.scheduledDate).toLocaleDateString('pt-BR')}</strong>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 flex-1">
+                      <span className="text-xs font-semibold text-foreground block">Legenda:</span>
+                      <div className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-lg border border-border/40 whitespace-pre-wrap leading-relaxed">
+                        {expandedCaptions[pub.id] 
+                          ? pub.caption 
+                          : (pub.caption.length > 120 ? `${pub.caption.slice(0, 120)}...` : pub.caption)
+                        }
+                        {pub.caption.length > 120 && (
+                          <button
+                            type="button"
+                            onClick={() => setExpandedCaptions({
+                              ...expandedCaptions,
+                              [pub.id]: !expandedCaptions[pub.id]
+                            })}
+                            className="text-primary hover:text-primary/80 font-bold block mt-1 focus:outline-none hover:underline cursor-pointer"
+                          >
+                            {expandedCaptions[pub.id] ? 'Ver menos' : 'Ver mais'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {pub.clientComments && (
+                      <div className="p-3 bg-danger/5 border border-danger/25 rounded-lg space-y-1 text-xs mt-auto">
+                        <span className="font-semibold text-danger flex items-center gap-1">
+                          <AlertCircle className="h-3.5 w-3.5 shrink-0" /> Comentários do Cliente:
+                        </span>
+                        <p className="text-muted-foreground leading-relaxed italic">
+                          &ldquo;{pub.clientComments}&rdquo;
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Details */}
-                <div className="p-4 flex flex-col flex-1 space-y-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <span className="font-bold text-sm text-foreground block truncate" title={pub.companyName}>{pub.companyName}</span>
-                      <span className="text-[10px] text-muted-foreground mt-0.5">Contato: {pub.clientName}</span>
-                    </div>
-                    <div className="text-right text-[10px] text-muted-foreground shrink-0">
-                      <span className="block font-medium">Agendamento:</span>
-                      <strong className="text-foreground">{new Date(pub.scheduledDate).toLocaleDateString('pt-BR')}</strong>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 flex-1">
-                    <span className="text-xs font-semibold text-foreground block">Legenda:</span>
-                    <div className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-lg border border-border/40 whitespace-pre-wrap leading-relaxed">
-                      {expandedCaptions[pub.id] 
-                        ? pub.caption 
-                        : (pub.caption.length > 120 ? `${pub.caption.slice(0, 120)}...` : pub.caption)
-                      }
-                      {pub.caption.length > 120 && (
-                        <button
-                          type="button"
-                          onClick={() => setExpandedCaptions({
-                            ...expandedCaptions,
-                            [pub.id]: !expandedCaptions[pub.id]
-                          })}
-                          className="text-primary hover:text-primary/80 font-bold block mt-1 focus:outline-none hover:underline cursor-pointer"
-                        >
-                          {expandedCaptions[pub.id] ? 'Ver menos' : 'Ver mais'}
-                        </button>
+                {/* Approval controls */}
+                <div className="p-4 border-t border-border/40 bg-muted/10">
+                  {pub.status === 'approved' ? (
+                    <div className="space-y-2">
+                      <div className="text-xs text-success font-semibold flex items-center gap-1.5 justify-center py-1.5 bg-success/5 border border-success/15 rounded-lg text-center">
+                        <Check className="h-4 w-4 shrink-0" /> Aprovada pelo Cliente!
+                      </div>
+                      {pub.approvedAt && (
+                        <span className="text-[10px] text-muted-foreground text-center block">
+                          Aprovado em: {new Date(pub.approvedAt).toLocaleString('pt-BR')}
+                        </span>
                       )}
                     </div>
-                  </div>
-
-                  {pub.clientComments && (
-                    <div className="p-3 bg-danger/5 border border-danger/20 rounded-lg space-y-1 text-xs mt-auto">
-                      <span className="font-semibold text-danger block flex items-center gap-1">
-                        <AlertCircle className="h-3.5 w-3.5" /> Ajustes Solicitados:
+                  ) : pub.status === 'changes_requested' ? (
+                    <div className="space-y-3">
+                      <div className="text-xs text-danger font-semibold flex items-center gap-1.5 justify-center py-1.5 bg-danger/5 border border-danger/15 rounded-lg text-center">
+                        <AlertCircle className="h-4 w-4 shrink-0" /> Ajuste solicitado pelo cliente
+                      </div>
+                      {pub.changesRequestedAt && (
+                        <span className="text-[10px] text-muted-foreground text-center block">
+                          Solicitado em: {new Date(pub.changesRequestedAt).toLocaleString('pt-BR')}
+                        </span>
+                      )}
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        className="w-full text-xs h-8.5 gap-1.5 justify-center hover:bg-muted"
+                        onClick={() => regeneratePublicationApprovalLink(pub.id)}
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" /> Gerar Novo Link após Ajuste
+                      </Button>
+                    </div>
+                  ) : !pub.approvalToken || pub.approvalLinkStatus === 'not_created' ? (
+                    <div className="space-y-2.5 text-center">
+                      <span className="text-[10px] text-muted-foreground block">
+                        Gere um link temporário para o cliente aprovar ou solicitar ajuste.
                       </span>
-                      <p className="text-muted-foreground leading-relaxed italic">
-                        &ldquo;{pub.clientComments}&rdquo;
-                      </p>
+                      <Button 
+                        size="sm"
+                        className="w-full text-xs h-8.5 gap-1.5 justify-center"
+                        onClick={() => createPublicationApprovalLink(pub.id)}
+                      >
+                        <LinkIcon className="h-3.5 w-3.5" /> Criar link de aprovação
+                      </Button>
+                    </div>
+                  ) : pub.approvalLinkStatus === 'active' ? (
+                    isExpired ? (
+                      <div className="space-y-3">
+                        <div className="text-xs text-muted-foreground font-semibold flex items-center gap-1.5 justify-center py-1.5 bg-muted border border-border rounded-lg text-center">
+                          <Clock className="h-4 w-4 shrink-0" /> Link de aprovação expirado
+                        </div>
+                        <Button 
+                          size="sm"
+                          variant="outline"
+                          className="w-full text-xs h-8.5 gap-1.5 justify-center"
+                          onClick={() => regeneratePublicationApprovalLink(pub.id)}
+                        >
+                          <RefreshCw className="h-3.5 w-3.5" /> Gerar Novo Link
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between px-1">
+                          <span className="text-[10px] text-success font-bold uppercase tracking-wider flex items-center gap-1">
+                            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" /> Link ativo
+                          </span>
+                          <CountdownTimer expiresAt={pub.approvalLinkExpiresAt!} />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 text-xs h-8.5 gap-1.5 justify-center"
+                            onClick={() => handleCopyLink(pub.id, pub.approvalLink)}
+                          >
+                            <Copy className="h-3.5 w-3.5" /> {copiedId === pub.id ? 'Copiado!' : 'Copiar link'}
+                          </Button>
+                          <a 
+                            href={pub.approvalLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="flex-1 inline-flex items-center justify-center text-xs h-8.5 gap-1.5 rounded-lg border border-border bg-card text-foreground hover:bg-muted font-medium transition-colors"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" /> Abrir link
+                          </a>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <div className="text-xs text-muted-foreground text-center py-1.5">
+                      Status do Link: <strong className="text-foreground uppercase">{pub.approvalLinkStatus}</strong>
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* Approval controls */}
-              <div className="p-4 border-t border-border/40 bg-muted/10">
-                {pub.status === 'pending_approval' || pub.status === 'ready_for_approval' || pub.status === 'sent_to_client' ? (
-                  <div className="space-y-3.5">
-                    <Textarea
-                      placeholder="Feedback de alteração (obrigatório se for recusar)..."
-                      value={pubComments[pub.id] || ''}
-                      onChange={(e) => setPubComments({ ...pubComments, [pub.id]: e.target.value })}
-                      rows={2}
-                      className="text-xs bg-background"
-                    />
-                    
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button 
-                        size="sm" 
-                        className="w-full sm:flex-1 text-xs h-8.5 gap-1.5 justify-center"
-                        onClick={() => updatePublicationStatus(pub.id, 'approved')}
-                      >
-                        <Check className="h-3.5 w-3.5" /> Aprovar Post
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="danger" 
-                        className="w-full sm:flex-1 text-xs h-8.5 gap-1.5 justify-center"
-                        onClick={() => {
-                          if (!pubComments[pub.id]) {
-                            alert('Informe o ajuste necessário no campo de texto.');
-                            return;
-                          }
-                          updatePublicationStatus(pub.id, 'changes_requested', pubComments[pub.id]);
-                          setPubComments({ ...pubComments, [pub.id]: '' });
-                        }}
-                      >
-                        <AlertCircle className="h-3.5 w-3.5" /> Solicitar Ajuste
-                      </Button>
-                    </div>
-                  </div>
-                ) : pub.status === 'approved' ? (
-                  <div className="text-xs text-success font-semibold flex items-center gap-1.5 justify-center py-1 bg-success/5 border border-success/15 rounded-lg text-center">
-                    <Check className="h-4 w-4 shrink-0" /> Publicação Aprovada! Pronta para agendamento.
-                  </div>
-                ) : pub.status === 'changes_requested' ? (
-                  <div className="text-xs text-danger font-semibold flex items-center gap-1.5 justify-center py-1 bg-danger/5 border border-danger/15 rounded-lg text-center">
-                    <AlertCircle className="h-4 w-4 shrink-0" /> Ajustes criativos solicitados ao designer.
-                  </div>
-                ) : (
-                  <div className="text-xs text-muted-foreground text-center py-1.5">
-                    Status: <strong className="text-foreground uppercase">{pub.status}</strong>
-                  </div>
-                )}
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -279,23 +491,77 @@ export default function PublicacoesPage() {
         description="Crie um novo post de teste para aprovação do cliente."
       >
         <form onSubmit={handleCreatePublication} className="space-y-4 pt-2">
-          <Select
-            label="Selecione o Cliente"
-            placeholder="Escolha um cliente..."
-            options={clientOptions}
-            value={selectedClientId}
-            onChange={(e) => setSelectedClientId(e.target.value)}
-            required
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Select
+              label="Selecione o Cliente"
+              placeholder="Escolha um cliente..."
+              options={clientOptions}
+              value={selectedClientId}
+              onChange={(e) => setSelectedClientId(e.target.value)}
+              required
+            />
+            <Select
+              label="Canal / Rede Social"
+              options={platformOptions}
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value as 'instagram' | 'facebook' | 'linkedin' | 'tiktok' | 'google_business' | 'other')}
+            />
+          </div>
 
-          <Input
-            label="URL da Imagem de Destaque"
-            type="url"
-            placeholder="Link de imagem..."
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            required
-          />
+          {/* Image source selector */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Origem da Imagem</label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="imageSource" 
+                  checked={imageSource === 'external_url'} 
+                  onChange={() => setImageSource('external_url')}
+                  className="accent-primary" 
+                />
+                URL Externa
+              </label>
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="imageSource" 
+                  checked={imageSource === 'upload'} 
+                  onChange={() => setImageSource('upload')}
+                  className="accent-primary"
+                />
+                Upload Local (Demo Sandbox)
+              </label>
+            </div>
+          </div>
+
+          {imageSource === 'external_url' ? (
+            <Input
+              label="URL da Imagem de Destaque"
+              type="url"
+              placeholder="Link de imagem (ex: https://images.unsplash.com/...)"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              required
+            />
+          ) : (
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Selecionar Imagem</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary file:hover:bg-primary/20 file:cursor-pointer"
+                required={!imageFileBase64}
+              />
+              {fileError && (
+                <div className="p-3 bg-red-950/20 border border-red-900/30 rounded-lg flex items-start gap-2 text-red-400 text-xs mt-1.5">
+                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>{fileError}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DatePicker
@@ -320,6 +586,40 @@ export default function PublicacoesPage() {
             rows={4}
             required
           />
+
+          {/* Visual Simulation Preview */}
+          {(caption || finalPreviewImageUrl) && (
+            <div className="mt-4 p-4 border border-border/80 bg-muted/20 rounded-xl space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                Visualização Prévia (Simulação de Post)
+              </span>
+              <div className="border border-border/60 rounded-xl bg-card overflow-hidden max-w-sm mx-auto shadow-sm">
+                <div className="p-3 border-b border-border/40 flex items-center justify-between">
+                  <span className="font-bold text-xs text-foreground block">
+                    {selectedClientId ? clients.find(c => c.id === selectedClientId)?.companyName : 'Nome do Cliente'}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+                    <PlatformIcon platform={platform} />
+                    {platform}
+                  </span>
+                </div>
+                {finalPreviewImageUrl && (
+                  <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden border-b border-border/30">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={finalPreviewImageUrl} alt="Preview creative" className="object-cover w-full h-full" />
+                  </div>
+                )}
+                <div className="p-3">
+                  <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed whitespace-pre-wrap">
+                    <span className="font-bold text-foreground mr-1.5">
+                      {selectedClientId ? clients.find(c => c.id === selectedClientId)?.companyName.toLowerCase().replace(/\s+/g, '') : 'cliente'}
+                    </span>
+                    {caption || 'Seu texto de legenda...'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border/20">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
